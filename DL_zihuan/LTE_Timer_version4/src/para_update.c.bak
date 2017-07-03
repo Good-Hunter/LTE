@@ -1,0 +1,1168 @@
+/***********************************************/
+/*para_update.c                                */
+/*功能：小区和用户参数更新                     */
+/***********************************************/
+#include "system_init.h"
+#include "pl_comm.h"
+#define SINGLE_USER //单用户测试，注销表示是多用户测试
+#define SUBCARR_NUM_PRB_DATA 8
+
+extern void read_cell_para_config(FILE* fp,
+        CELL_PARA* cell_para_ptr);
+extern void read_user_para_config(FILE* fp,USER_PARA* user_para_ptr,CELL_PARA* cell_para_ptr);
+int bitmap[USER_NUM] = {
+    0xc0000000,//prb0~7
+    0x38000000,//prb8~19
+    0x06000000,//prb20~27
+    0x01c00000,//prb28~39
+    0x00300000,//prb40~47
+    0x000e0000,//prb48~59
+    0x00018000,//prb60~67
+    0x00007000,//prb68~79
+    0x00000c00,//prb80~87
+    0x00000380//prb88~99
+};
+short tbSize[USER_NUM] = {
+2280,3496,2280,3496,2280,3496,2280,3496,2280,3496
+};
+short tbSize_subframe0[USER_NUM] = {
+2280,3496,2280,3496,2280,3496,2280,3496,2280,3496
+};
+short tbSize_subframe1[USER_NUM] = {
+1384,2088,1384,2088,1384,2088,1384,2088,1384,2088
+};
+int DCI_data[USER_NUM] = {
+0x8578F080,//1 0 0 0 0 1 0 1 0 1 1 1 1 0 0 0 1 1 1 1 0 0 0 0 1 0 0 0 0 0 0,按照32bit输入，低位补0
+0x88A8F080,//1 0 0 0 1 0 0 0 1 0 1 0 1 0 0 0 1 1 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x85A0F080,//1 0 0 0 0 1 0 1 1 0 1 0 0 0 0 0 1 1 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x88D0F080,//1 0 0 0 1 0 0 0 1 1 0 1 0 0 0 0 1 1 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x85C8F080,//1 0 0 0 0 1 0 1 1 1 0 0 1 0 0 0 1 1 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x88F8F080,//1 0 0 0 1 0 0 0 1 1 1 1 1 0 0 0 1 1 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x85F0F080,//1 0 0 0 0 1 0 1 1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x8920F080,//1 0 0 0 1 0 0 1 0 0 1 0 0 0 0 0 1 1 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x8618F080,//1 0 0 0 0 1 1 0 0 0 0 1 1 0 0 0 1 1 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x8948F080//1 0 0 0 1 0 0 1 0 1 0 0 1 0 0 0 1 1 1 1 0 0 0 0 1 0 0 0 0 0 0
+
+};
+int DCI_data_s[USER_NUM] = {
+0x8578B080,//1 0 0 0 0 1 0 1 0 1 1 1 1 0 0 0 1 0 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x88A8B080,//1 0 0 0 1 0 0 0 1 0 1 0 1 0 0 0 1 0 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x85A0B080,//1 0 0 0 0 1 0 1 1 0 1 0 0 0 0 0 1 0 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x88D0B080,//1 0 0 0 1 0 0 0 1 1 0 1 0 0 0 0 1 0 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x85C8B080,//1 0 0 0 0 1 0 1 1 1 0 0 1 0 0 0 1 0 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x88F8B080,//1 0 0 0 1 0 0 0 1 1 1 1 1 0 0 0 1 0 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x85F0B080,//1 0 0 0 0 1 0 1 1 1 1 1 0 0 0 0 1 0 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x8920B080,//1 0 0 0 1 0 0 1 0 0 1 0 0 0 0 0 1 0 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x8618B080,//1 0 0 0 0 1 1 0 0 0 0 1 1 0 0 0 1 0 1 1 0 0 0 0 1 0 0 0 0 0 0
+0x8948B080//1 0 0 0 1 0 0 1 0 1 0 0 1 0 0 0 1 0 1 1 0 0 0 0 1 0 0 0 0 0 0
+};
+
+short num_PRB[USER_NUM] = {
+8,12,8,12,8,12,8,12,8,12
+};
+#ifdef SINGLE_USER
+void para_init(CONFIG_PARA* config_para_ptr)
+{
+    char i;
+    vxx_user_num = 1;
+    config_para_ptr[0].num_code_word = NUM_CODEWORD_2;
+
+    config_para_ptr[0].ueTransMode = SPATIAL_MULTIPLEXING;
+    config_para_ptr[0].modulation[0] = QAM64;
+    config_para_ptr[0].modulation[1] = QAM64;
+    config_para_ptr[0].rnti = 61;
+    config_para_ptr[0].num_PRB = 100;
+    config_para_ptr[0].rvIdx = 0;
+    config_para_ptr[0].tbSize[0] = 75376;
+    config_para_ptr[0].tbSize[1] = 75376;
+    config_para_ptr[0].tbSize_subframe0[0] = 63776;
+    config_para_ptr[0].tbSize_subframe0[1] = 63776;
+    config_para_ptr[0].tbSize_subframe1[0] = 55056;
+    config_para_ptr[0].tbSize_subframe1[1] = 55056;
+    config_para_ptr[0].bitmap = 0xffffff80;//与num_PRB配合使用,表示起始prb是0
+    for(i = 0;i < 10;i++)
+    {
+      config_para_ptr[0].subframe_direction[i] = up_down_config[2][i];
+    }
+    //与config_para_ptr->tbSize_subframe0 = 63776对应
+    config_para_ptr[0].frame_config = 2;
+    config_para_ptr[0].pdcch_num = vxx_user_num;
+    config_para_ptr[0].pdcch_para[0].pdcch_format = 0;
+    config_para_ptr[0].pdcch_para[0].DCI_format = Dci2A;
+    config_para_ptr[0].pdcch_para[0].dci_bit_len = 51;
+    config_para_ptr[0].pdcch_para[0].rnti = 61;
+    config_para_ptr[0].pdcch_para[0].start_CCE = 0;
+    config_para_ptr[0].pdcch_para[0].common_pdcch = 0;
+    config_para_ptr[0].pdcch_para[0].DCI_data[0] = _bitr(0x7FFFFFC0);
+    config_para_ptr[0].pdcch_para[0].DCI_data[1] = _bitr(0x1b1b0000);
+
+    //与config_para_ptr->tbSize_subframe1 = 55056对应
+    config_para_ptr[0].frame_config = 2;
+    config_para_ptr[0].pdcch_num = vxx_user_num;
+    config_para_ptr[0].pdcch_para[1].pdcch_format = 0;
+    config_para_ptr[0].pdcch_para[1].DCI_format = Dci2A;
+    config_para_ptr[0].pdcch_para[1].dci_bit_len = 51;
+    config_para_ptr[0].pdcch_para[1].rnti = 61;
+    config_para_ptr[0].pdcch_para[1].start_CCE = 0;
+    config_para_ptr[0].pdcch_para[1].common_pdcch = 0;
+    config_para_ptr[0].pdcch_para[1].DCI_data[0] = _bitr(0x7FFFFFC0);
+    config_para_ptr[0].pdcch_para[1].DCI_data[1] = _bitr(0x18180000);
+
+    //与config_para_ptr->tbSize = 75376对应
+    config_para_ptr[0].frame_config = 2;
+    config_para_ptr[0].pdcch_num = vxx_user_num;
+    config_para_ptr[0].pdcch_para[2].pdcch_format = 0;
+    config_para_ptr[0].pdcch_para[2].DCI_format = Dci2A;
+    config_para_ptr[0].pdcch_para[2].dci_bit_len = 51;
+    config_para_ptr[0].pdcch_para[2].rnti = 61;
+    config_para_ptr[0].pdcch_para[2].start_CCE = 0;
+    config_para_ptr[0].pdcch_para[2].common_pdcch = 0;
+    config_para_ptr[0].pdcch_para[2].DCI_data[0] = _bitr(0x7FFFFFC0);
+    config_para_ptr[0].pdcch_para[2].DCI_data[1] = _bitr(0x1c1c0000);
+
+    //PHICH
+    vxx_mac_para.phich_num = vxx_user_num;
+    config_para_ptr[0].phich_para.ACK_NACK = 0;
+    config_para_ptr[0].phich_para.n_group = 0;
+    config_para_ptr[0].phich_para.n_seq = 0;
+}
+#else
+void para_init(CONFIG_PARA* config_para_ptr)
+{
+
+      char i,j;
+      vxx_user_num = USER_NUM;
+      for(i = 0;i < vxx_user_num;i++)
+      {
+        config_para_ptr[i].num_code_word = NUM_CODEWORD_1;
+        config_para_ptr[i].ueTransMode = TRANSMIT_DIVERSITY;
+        config_para_ptr[i].modulation[0] = QAM16;
+        config_para_ptr[i].num_PRB = num_PRB[i];
+        config_para_ptr[i].rvIdx = 0;
+        config_para_ptr[i].tbSize[0] = tbSize[i];
+        config_para_ptr[i].tbSize_subframe0[0] = tbSize_subframe0[i];
+        config_para_ptr[i].tbSize_subframe1[0] = tbSize_subframe1[i];
+        config_para_ptr[i].bitmap = bitmap[i];//与num_PRB配合使用,表示起始prb是0
+
+        for(j = 0;j < 10;j++)
+        {
+          config_para_ptr[i].subframe_direction[j] = up_down_config[2][j];
+        }
+        //与config_para_ptr->tbSize_subframe0 = 13536对应
+        config_para_ptr[i].frame_config = 2;
+        config_para_ptr[i].pdcch_num = 1;
+        config_para_ptr[i].pdcch_para[0].pdcch_format = 0;
+        config_para_ptr[i].pdcch_para[0].DCI_format = Dci1A;
+        config_para_ptr[i].pdcch_para[0].dci_bit_len = 31;
+
+        config_para_ptr[i].rnti = 61+i;
+        config_para_ptr[i].pdcch_para[0].rnti = 61+i;
+        config_para_ptr[i].pdcch_para[0].start_CCE = 0;
+        config_para_ptr[i].pdcch_para[0].DCI_data[0] = _bitr(DCI_data[i]);
+        config_para_ptr[i].pdcch_para[0].DCI_data[1] = _bitr(0x00000000);
+        config_para_ptr[i].pdcch_para[0].common_pdcch = 0;
+
+
+        //与config_para_ptr->tbSize_subframe1 = 8504对应
+        config_para_ptr[i].pdcch_para[1].pdcch_format = 0;
+        config_para_ptr[i].pdcch_para[1].DCI_format = Dci1A;
+        config_para_ptr[i].pdcch_para[1].dci_bit_len = 31;
+
+        config_para_ptr[i].pdcch_para[1].start_CCE = 0;
+        config_para_ptr[i].pdcch_para[1].rnti = 61+i;
+        config_para_ptr[i].pdcch_para[1].DCI_data[0] = _bitr(DCI_data_s[i]);
+        config_para_ptr[i].pdcch_para[1].DCI_data[1] = _bitr(0x00000000);
+        config_para_ptr[i].pdcch_para[1].common_pdcch = 0;
+
+        //与config_para_ptr->tbSize = 13536对应
+        config_para_ptr[i].pdcch_para[2].pdcch_format = 0;
+        config_para_ptr[i].pdcch_para[2].DCI_format = Dci1A;
+        config_para_ptr[i].pdcch_para[2].dci_bit_len = 31;
+
+        config_para_ptr[i].pdcch_para[2].start_CCE = 0;
+        config_para_ptr[i].pdcch_para[2].rnti = 61+i;
+        config_para_ptr[i].pdcch_para[2].DCI_data[0] = _bitr(DCI_data[i]);
+        config_para_ptr[i].pdcch_para[2].DCI_data[1] = _bitr(0x00000000);
+        config_para_ptr[i].pdcch_para[2].common_pdcch = 0;
+
+      }
+}
+#endif
+#if 0
+void para_init(CONFIG_PARA* config_para_ptr)
+{
+    char i;
+    config_para_ptr->num_code_word = NUM_CODEWORD_1;
+
+    config_para_ptr->ueTransMode = TRANSMIT_DIVERSITY;
+    config_para_ptr->modulation = QPSK;
+    config_para_ptr->rnti = 0;
+    config_para_ptr->num_PRB = 4;
+    config_para_ptr->rvIdx = 0;
+    config_para_ptr->tbSize = 392;
+    config_para_ptr->tbSize_subframe0 = 256;
+    config_para_ptr->tbSize_subframe1 = 176;
+    for(i = 0;i < 10;i++)
+    {
+      config_para_ptr->subframe_direction[i] = up_down_config[2][i];
+    }
+
+}
+#endif
+void cell_para_update(CELL_PARA* cell_para_ptr,
+                      unsigned char * restrict rsgen_output_buffer,
+                      unsigned int * PSCH_data_buffer,
+                      unsigned int * SSCH_data_subframe0_buffer,
+                      unsigned int * SSCH_data_subframe5_buffer)
+{
+    unsigned char n_id_1;
+    unsigned char n_id_2;
+    FILE* pTestCfgFile;
+    unsigned char i;
+    
+    /* 按照默认参数配置 */
+        cell_para_ptr->cellID = 0;
+        cell_para_ptr->N_cp = NORMAL_CP;
+        cell_para_ptr->num_antenna_port = NUM_ANTENNA_PORT_2;
+        cell_para_ptr->num_PRB_per_bw_config = 100;
+        cell_para_ptr->phich_Durtion = 0;
+        cell_para_ptr->g_phich_Ng = 0;
+        switch(cell_para_ptr->num_PRB_per_bw_config)
+        {
+            case 100:
+              cell_para_ptr->dl_Bandwidth = 5;
+              break;
+            case 75:
+                cell_para_ptr->dl_Bandwidth = 4;
+                break;
+            case 50:
+                cell_para_ptr->dl_Bandwidth = 3;
+                break;
+            case 25:
+                cell_para_ptr->dl_Bandwidth = 2;
+                break;
+            case 15:
+                cell_para_ptr->dl_Bandwidth = 1;
+                break;
+            case 6:
+                cell_para_ptr->dl_Bandwidth = 0;
+                break;
+        }
+        cell_para_ptr->CFI = 1;
+        for(i = 0;i < 10;i++)
+        {
+          cell_para_ptr->subframe_direction[i] = vxx_config_para_init[0].subframe_direction[i];
+        }
+        cell_para_ptr->frame_config = vxx_config_para_init[0].frame_config;
+        cell_para_ptr->dwpts_symbol = 10;/*config 7*/
+        cell_para_ptr->P_B = 1;
+
+    if (cell_para_ptr->num_PRB_per_bw_config >= 64)
+        cell_para_ptr->RBG_size = 4;/* as RBG = 4RB*/
+    else if (cell_para_ptr->num_PRB_per_bw_config >= 27)
+        cell_para_ptr->RBG_size = 3; /* as RBG = 3RB*/
+    else if (cell_para_ptr->num_PRB_per_bw_config >= 11)
+        cell_para_ptr->RBG_size = 2; /* as RBG = 2RB*/
+    else if (cell_para_ptr->num_PRB_per_bw_config <= 10)
+        cell_para_ptr->RBG_size = 1; /* as RBG = 1RB*/
+        
+    /* set the start and end SC value occupied by PBCH & SCH on a port */
+    cell_para_ptr->PBCHSyncSCStart = ((cell_para_ptr->num_PRB_per_bw_config*N_SC_PER_RB)/2) - 36;
+    cell_para_ptr->PBCHSyncSCEnd = ((cell_para_ptr->num_PRB_per_bw_config*N_SC_PER_RB)/2) + 35;
+    cell_para_ptr->pbch_modulation_data_ptr = (signed int*)vxx_pbch_modulation_data;
+    if(NUM_ANTENNA_PORT_2 == cell_para_ptr->num_antenna_port )
+    {
+        cell_para_ptr->pbch_pcfich_pdcch_phich_ueTransMode = TRANSMIT_DIVERSITY;
+    }
+    else
+    {
+        cell_para_ptr->pbch_pcfich_pdcch_phich_ueTransMode = SINGLE_ANTENNA_PORT;
+    }
+    cell_para_ptr->pbch_m_symbol = PBCH_SYMBOL_LEN_SLOT0;
+
+    
+
+    rs_sequences_gen(rsgen_output_buffer,/*最多17slot*3symbol*220char,存储的是实虚部共同索引*/
+                     cell_para_ptr->cellID,
+                     cell_para_ptr->N_cp
+                     );
+    n_id_1 = cell_para_ptr->cellID / 3;
+    n_id_2 = cell_para_ptr->cellID % 3;
+    PSCH_data_buffer = &psc_data[n_id_2 * TOTAL_PSC_SSC_SC_NUM];
+    SSCH_data_subframe0_buffer = &ssc_subframe0_data[n_id_1 * TOTAL_PSC_SSC_SC_NUM];
+    SSCH_data_subframe5_buffer = &ssc_subframe5_data[n_id_1 * TOTAL_PSC_SSC_SC_NUM];
+}
+
+unsigned int user_para_update(USER_PARA* user_para_ptr,
+                              unsigned char slot_idx,
+                              CELL_PARA* cell_para_ptr,
+                              CONFIG_PARA* config_para_ptr)
+{
+    FILE* pTestCfgFile;
+    unsigned char rs_symbol;
+    unsigned char pbch_ssyc_symbol;
+    unsigned char total_symbol;
+    unsigned char pbch_symbol7;
+    unsigned char i,j,bitmap_length,symb_no;
+    signed int  prb_start,prb_num;
+    
+    for(i = 0;i < 32;i++)
+    {
+        if(1 == config_para_ptr->bitmap >> (31 - i))
+        {
+            prb_start = i * cell_para_ptr->RBG_size;
+        }
+    }
+    prb_num = config_para_ptr->num_PRB;
+    /*12-4=8:导频所在prb中PDSCH可用子载波个数 rs_symbol:导频符号个数（除去CFI之后的）
+    6：PSCH占用的PAB个数
+    1:PSCH占用符号个数*/
+    
+    user_para_ptr->num_code_word =  config_para_ptr->num_code_word;
+    user_para_ptr->m_sybol = 0;
+    if((slot_idx == 2) || (slot_idx == 12))/*特殊子帧子帧存在PSCH*/
+    {
+        total_symbol = cell_para_ptr->dwpts_symbol;
+
+        for(j = 0;j < user_para_ptr->num_code_word;j++)
+        {
+            user_para_ptr->tbSize[j] = config_para_ptr->tbSize_subframe1[j];/*dwpts为10个符号*/
+        }
+        
+        for(symb_no = cell_para_ptr->CFI;symb_no < total_symbol;symb_no++)
+        {
+            if((0 == symb_no) || (7 == symb_no) || (4 == symb_no) || (11 == symb_no))//跳过crs
+            {
+                user_para_ptr->m_sybol += prb_num * SUBCARR_NUM_PRB_DATA;
+            }
+            else if(2 == symb_no)//跳过pss
+            {
+                if((prb_start + 1 + prb_num - 1) <= N_DL_RB/2 - 3)  // prb_start必须从0开始
+                {
+                    user_para_ptr->m_sybol += prb_num * N_SC_PER_RB;
+                }
+                else if(((prb_start + 1 + prb_num - 1) > N_DL_RB/2 - 3) && ((prb_start + 1 + prb_num - 1) <= N_DL_RB/2 + 3)
+                && ((prb_start + 1)<= N_DL_RB/2 - 3))  
+                {
+                    user_para_ptr->m_sybol += (N_DL_RB/2 - 3 - prb_start) * N_SC_PER_RB;
+                }
+                else if(((prb_start + 1 + prb_num - 1) > N_DL_RB/2 - 3) && ((prb_start + 1 + prb_num - 1) <= N_DL_RB/2 + 3)
+                && ((prb_start + 1) > N_DL_RB/2 - 3) && ((prb_start + 1) <= N_DL_RB/2 + 3))  
+                {
+                    user_para_ptr->m_sybol += 0;
+                }
+                else if(((prb_start + 1 + prb_num - 1) >  N_DL_RB/2 + 3)
+                && ((prb_start + 1) > N_DL_RB/2 - 3) && ((prb_start + 1) <= N_DL_RB/2 + 3))  
+                {
+                    user_para_ptr->m_sybol += ((prb_start + prb_num) - N_DL_RB/2 - 3) * N_SC_PER_RB;
+                }
+                else if(((prb_start + 1 + prb_num - 1) >  N_DL_RB/2 + 3) && ((prb_start + 1) > N_DL_RB/2 + 3))
+                {
+                    user_para_ptr->m_sybol += prb_num * N_SC_PER_RB;
+                }
+                else if(((prb_start + 1 + prb_num - 1) >  N_DL_RB/2 + 3) && ((prb_start + 1) <= N_DL_RB/2 - 3))
+                {
+                    user_para_ptr->m_sybol += (prb_num - 6) * N_SC_PER_RB;
+                }
+            }
+            else//无其他信道/信号
+            {
+                user_para_ptr->m_sybol += prb_num * N_SC_PER_RB;
+            }
+        }
+        
+    }
+    else if(slot_idx == 10)/*SSCH存在slot11*/
+    {
+
+        total_symbol = 2 * N_SYM_PER_SLOT;
+        for(j = 0;j < user_para_ptr->num_code_word;j++)
+        {
+            user_para_ptr->tbSize[j] = config_para_ptr->tbSize[j];
+        }
+        for(symb_no = cell_para_ptr->CFI;symb_no < total_symbol;symb_no++)
+        {
+            if((0 == symb_no) || (7 == symb_no) || (4 == symb_no) || (11 == symb_no))//跳过crs
+            {
+                user_para_ptr->m_sybol += prb_num * SUBCARR_NUM_PRB_DATA;
+            }
+            else if(13 == symb_no)     //跳过pbch或sss
+            {
+                if((prb_start + 1 + prb_num - 1) <= N_DL_RB/2 - 3)  // prb_start必须从0开始
+                {
+                    user_para_ptr->m_sybol += prb_num * N_SC_PER_RB;
+                }
+                else if(((prb_start + 1 + prb_num - 1) > N_DL_RB/2 - 3) && ((prb_start + 1 + prb_num - 1) <= N_DL_RB/2 + 3)
+                && ((prb_start + 1)<= N_DL_RB/2 - 3))  
+                {
+                    user_para_ptr->m_sybol += (N_DL_RB/2 - 3 - prb_start) * N_SC_PER_RB;
+                }
+                else if(((prb_start + 1 + prb_num - 1) > N_DL_RB/2 - 3) && ((prb_start + 1 + prb_num - 1) <= N_DL_RB/2 + 3)
+                && ((prb_start + 1) > N_DL_RB/2 - 3) && ((prb_start + 1) <= N_DL_RB/2 + 3))  
+                {
+                    user_para_ptr->m_sybol += 0;
+                }
+                else if(((prb_start + 1 + prb_num - 1) >  N_DL_RB/2 + 3)
+                && ((prb_start + 1) > N_DL_RB/2 - 3) && ((prb_start + 1) <= N_DL_RB/2 + 3))  
+                {
+                    user_para_ptr->m_sybol += ((prb_start + prb_num) - N_DL_RB/2 - 3) * N_SC_PER_RB;
+                }
+                else if(((prb_start + 1 + prb_num - 1) >  N_DL_RB/2 + 3) && ((prb_start + 1) > N_DL_RB/2 + 3))
+                {
+                    user_para_ptr->m_sybol += prb_num * N_SC_PER_RB;
+                }
+                else if(((prb_start + 1 + prb_num - 1) >  N_DL_RB/2 + 3) && ((prb_start + 1) <= N_DL_RB/2 - 3))
+                {
+                    user_para_ptr->m_sybol += (prb_num - 6) * N_SC_PER_RB;
+                }
+            }
+            else    //无其他信道/信号
+            {
+                user_para_ptr->m_sybol += prb_num * N_SC_PER_RB;
+            }
+        }
+        
+    }
+    else if(slot_idx == 0)/*PBCH和SSCH存在slot0*/
+    {
+
+        total_symbol = 2 * N_SYM_PER_SLOT;
+
+        for(j = 0;j < user_para_ptr->num_code_word;j++)
+        {
+            user_para_ptr->tbSize[j] = config_para_ptr->tbSize_subframe0[j];
+        }
+        for(symb_no = cell_para_ptr->CFI;symb_no < total_symbol;symb_no++)
+        {
+
+            if((0 == symb_no) || (4 == symb_no) || (11 == symb_no))   //跳过crs
+            {
+                user_para_ptr->m_sybol += prb_num * SUBCARR_NUM_PRB_DATA;
+            }
+            else if((7 == symb_no))     //跳过crs和pbch
+            {
+                if((prb_start + 1 + prb_num - 1) <= N_DL_RB/2 - 3)  // prb_start必须从0开始
+                {
+                    user_para_ptr->m_sybol += prb_num * SUBCARR_NUM_PRB_DATA;
+                }
+                else if(((prb_start + 1 + prb_num - 1) > N_DL_RB/2 - 3) && ((prb_start + 1 + prb_num - 1) <= N_DL_RB/2 + 3)
+                && ((prb_start + 1)<= N_DL_RB/2 - 3))  
+                {
+                    user_para_ptr->m_sybol += (N_DL_RB/2 - 3 - prb_start) * SUBCARR_NUM_PRB_DATA;
+                }
+                else if(((prb_start + 1 + prb_num - 1) > N_DL_RB/2 - 3) && ((prb_start + 1 + prb_num - 1) <= N_DL_RB/2 + 3)
+                && ((prb_start + 1) > N_DL_RB/2 - 3) && ((prb_start + 1) <= N_DL_RB/2 + 3))  
+                {
+                    user_para_ptr->m_sybol += 0;
+                }
+                else if(((prb_start + 1 + prb_num - 1) >  N_DL_RB/2 + 3)
+                && ((prb_start + 1) > N_DL_RB/2 - 3) && ((prb_start + 1) <= N_DL_RB/2 + 3))  
+                {
+                    user_para_ptr->m_sybol += ((prb_start + prb_num) - N_DL_RB/2 - 3) * SUBCARR_NUM_PRB_DATA;
+                }
+                else if(((prb_start + 1 + prb_num - 1) >  N_DL_RB/2 + 3) && ((prb_start + 1) > N_DL_RB/2 + 3))
+                {
+                    user_para_ptr->m_sybol += prb_num * SUBCARR_NUM_PRB_DATA;
+                }
+                else if(((prb_start + 1 + prb_num - 1) >  N_DL_RB/2 + 3) && ((prb_start + 1) <= N_DL_RB/2 - 3))
+                {
+                    user_para_ptr->m_sybol += (prb_num - 6) * SUBCARR_NUM_PRB_DATA;
+                }
+            }
+            else if((8 == symb_no) || (9 == symb_no) || (10 == symb_no) || (13 == symb_no))     //跳过pbch或sss
+            {
+                if((prb_start + 1 + prb_num - 1) <= N_DL_RB/2 - 3)  // prb_start必须从0开始
+                {
+                    user_para_ptr->m_sybol += prb_num * N_SC_PER_RB;
+                }
+                else if(((prb_start + 1 + prb_num - 1) > N_DL_RB/2 - 3) && ((prb_start + 1 + prb_num - 1) <= N_DL_RB/2 + 3)
+                && ((prb_start + 1)<= N_DL_RB/2 - 3))  
+                {
+                    user_para_ptr->m_sybol += (N_DL_RB/2 - 3 - prb_start) * N_SC_PER_RB;
+                }
+                else if(((prb_start + 1 + prb_num - 1) > N_DL_RB/2 - 3) && ((prb_start + 1 + prb_num - 1) <= N_DL_RB/2 + 3)
+                && ((prb_start + 1) > N_DL_RB/2 - 3) && ((prb_start + 1) <= N_DL_RB/2 + 3))  
+                {
+                    user_para_ptr->m_sybol += 0;
+                }
+                else if(((prb_start + 1 + prb_num - 1) >  N_DL_RB/2 + 3)
+                && ((prb_start + 1) > N_DL_RB/2 - 3) && ((prb_start + 1) <= N_DL_RB/2 + 3))  
+                {
+                    user_para_ptr->m_sybol += ((prb_start + prb_num) - N_DL_RB/2 - 3) * N_SC_PER_RB;
+                }
+                else if(((prb_start + 1 + prb_num - 1) >  N_DL_RB/2 + 3) && ((prb_start + 1) > N_DL_RB/2 + 3))
+                {
+                    user_para_ptr->m_sybol += prb_num * N_SC_PER_RB;
+                }
+                else if(((prb_start + 1 + prb_num - 1) >  N_DL_RB/2 + 3) && ((prb_start + 1) <= N_DL_RB/2 - 3))
+                {
+                    user_para_ptr->m_sybol += (prb_num - 6) * N_SC_PER_RB;
+                }
+            }
+            else    //无其他信道/信号
+            {
+                user_para_ptr->m_sybol += prb_num * N_SC_PER_RB;
+            }
+        }
+        
+        
+    }
+    else
+    {
+        total_symbol = 2 * N_SYM_PER_SLOT;
+
+        for(j = 0;j < user_para_ptr->num_code_word;j++)
+        {
+            user_para_ptr->tbSize[j] = config_para_ptr->tbSize[j];
+        }
+        for(symb_no = cell_para_ptr->CFI;symb_no < total_symbol;symb_no++)
+        {
+            if((0 == symb_no) || (7 == symb_no) || (4 == symb_no) || (11 == symb_no))//跳过crs
+            {
+                user_para_ptr->m_sybol += prb_num * SUBCARR_NUM_PRB_DATA;
+            }
+            else    //无其他信道/信号
+            {
+                user_para_ptr->m_sybol += prb_num * N_SC_PER_RB;
+            }
+            
+        }
+
+    }
+
+    user_para_ptr->maxNumHarqProcess = 8;
+    user_para_ptr->ueTransMode =  config_para_ptr->ueTransMode;
+    user_para_ptr->Nir = 1827072/user_para_ptr->maxNumHarqProcess;/*UE等级4*/
+    for(j = 0;j < user_para_ptr->num_code_word;j++)
+    {
+        user_para_ptr->modulation[j] =  config_para_ptr->modulation[j];
+    }
+    user_para_ptr->numLayers = NUM_LAYER_2;
+
+    user_para_ptr->num_PRB = config_para_ptr->num_PRB;
+    user_para_ptr->rnti = config_para_ptr->rnti;
+    user_para_ptr->ueCategory = 4;
+    user_para_ptr->rvIdx = config_para_ptr->rvIdx;
+
+    user_para_ptr->delay_mod = LARGE_DELAY_CDD;
+    user_para_ptr->P_A = 4;
+    user_para_ptr->codeWordIdx[0] = 0;
+    user_para_ptr->codeWordIdx[1] = 1;
+    user_para_ptr->tb_ptr[0] = (unsigned int)vxx_tb_buffer;
+    //user_para_ptr[0].tb_ptr[1] = (unsigned int)&vxx_tb_buffer[(user_para_ptr[0].tbSize + 31)/32];
+    user_para_ptr->tb_ptr[1] = (unsigned int)&vxx_tb_buffer[((MAX_TB_BLOCK_SIZE + 31)/32)];
+    //bitmap_length = (vxx_config_para_init.num_PRB + 2) / cell_para_ptr->RBG_size;
+    user_para_ptr->bitmap = config_para_ptr->bitmap;
+#if 0
+    for(i = 0;i < bitmap_length;i++)
+    {
+        user_para_ptr[0].bitmap = user_para_ptr[0].bitmap | 0x00000001 << (31 - i);
+    }
+#endif
+
+
+    for(j = 0;j < user_para_ptr->num_code_word;j++)
+    {
+        user_para_ptr->numBitsG[j] = user_para_ptr->m_sybol * user_para_ptr->modulation[j];
+    }
+
+    return vxx_user_num;
+
+}
+
+void read_cell_para_config(FILE* fp,
+                           CELL_PARA* cell_para_ptr)
+{
+    signed int         i,j;
+    signed char            lineBuf[300];
+    char*           ptrBuf;
+  
+    while (fgets (lineBuf, 300, fp) != NULL)
+    {
+        if ((ptrBuf = strstr(lineBuf, "="))!=NULL)
+        {
+            ptrBuf ++;
+            if (strstr(lineBuf,"NcellID")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 cell_para_ptr->cellID = i;
+                 continue;
+            }
+    
+            if (strstr(lineBuf,"Ncp")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 cell_para_ptr->N_cp = i;
+                 continue;
+            
+            }
+            
+            if (strstr(lineBuf,"NumAntennaPort")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 cell_para_ptr->num_antenna_port = i;
+                 continue;
+            
+            }
+            
+            if (strstr(lineBuf,"NDLRB")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 cell_para_ptr->num_PRB_per_bw_config = i;
+                 continue;
+            
+            }
+            
+            if (strstr(lineBuf,"CFI")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 cell_para_ptr->CFI = i;
+                 continue;
+            }
+            
+            if (strstr(lineBuf,"UPDWONCONFIG")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 for(j = 0;j < 10;j++)
+                 {
+                     cell_para_ptr->subframe_direction[j] = up_down_config[i][j];
+                 }
+
+                 continue;
+            }
+            
+            if (strstr(lineBuf,"SPECIALCONFIG")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 cell_para_ptr->dwpts_symbol = special_config_normal[i][0];
+                 continue;
+            }
+            
+            if (strstr(lineBuf,"PB")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 cell_para_ptr->P_B = i;
+                 continue;
+            }
+            
+        }
+    }
+
+    return;
+}
+
+void f_dl_database_updata(CELL_PARA* cell_para_ptr)//小区参数
+{
+    unsigned char phich_Ng_table[4] = {4,12,24,48};//{1/6,1/2,1,2} * 24
+    int temp_normal,temp_extend,i,n,mi,j,k;
+    char symbol0_rs_table[2] = {0,3};
+    char symbol0_reg_k_table[8];
+    unsigned short symbol0_totall_reg_num,symbol0_pdcch_reg_num;
+    unsigned  char temp_map[300];
+    unsigned short temp_map1[300];
+    unsigned char temp_map2[300];
+    unsigned short temp_reg_index = 0;
+    int k_line;
+    unsigned  char subfn_index = 0;
+    unsigned short n0,n1,n2,n_0,n_1,n_2,l0,l1,l2,group_index;
+    
+
+    symbol0_totall_reg_num = cell_para_ptr->num_PRB_per_bw_config * 2;//符号0每个RB两个REG资源
+    symbol0_rs_table[0] = (symbol0_rs_table[0] + (cell_para_ptr->cellID % 6)) % 6;
+    symbol0_rs_table[1] = (symbol0_rs_table[1] + (cell_para_ptr->cellID % 6)) % 6;//根据CELL_ID计算RS的位置，RB单位
+    k = 0;
+    n = 0;
+    for(i = 0;i < 6;i++)//计算可携带控制信息的REG资源位置，RB单位
+    {
+      if(i == symbol0_rs_table[k])
+      {
+          k++;
+      }
+      else
+      {
+          symbol0_reg_k_table[n++] = i;
+
+      }
+    }
+    for(i = 0;i < symbol0_totall_reg_num;i++)//计算符号0所有可携带控制信息的REG资源位置（1200载波下）
+    {
+        g_symbol0_reg_k[i][0] = symbol0_reg_k_table[0] + i * 6;
+        g_symbol0_reg_k[i][1] = symbol0_reg_k_table[1] + i * 6;
+        g_symbol0_reg_k[i][2] = symbol0_reg_k_table[2] + i * 6;
+        g_symbol0_reg_k[i][3] = symbol0_reg_k_table[3] + i * 6;
+    }
+    //算符号1所有可携带控制信息的REG资源位置（1200载波下）
+    if(2 >= cell_para_ptr->num_antenna_port)
+    {
+        for(i = 0;i < 3 * cell_para_ptr->num_PRB_per_bw_config;i++)
+        {
+            g_symbol1_reg_k[i][0] = 0 + i * 4;
+            g_symbol1_reg_k[i][1] = 1 + i * 4;
+            g_symbol1_reg_k[i][2] = 2 + i * 4;
+            g_symbol1_reg_k[i][3] = 3 + i * 4;
+        }
+    }
+    else//同符号0一样
+    {
+        memcpy(&g_symbol1_reg_k[0][0],&g_symbol0_reg_k[0][0],2 * cell_para_ptr->num_PRB_per_bw_config * 4 * sizeof(int));
+    }
+    //算符号2所有可携带控制信息的REG资源位置（1200载波下）
+    for(i = 0;i < 3 * cell_para_ptr->num_PRB_per_bw_config;i++)
+    {
+        g_symbol2_reg_k[i][0] = 0 + i * 4;
+        g_symbol2_reg_k[i][1] = 1 + i * 4;
+        g_symbol2_reg_k[i][2] = 2 + i * 4;
+        g_symbol2_reg_k[i][3] = 3 + i * 4;
+    }
+    //计算pcfich位置
+    k_line = cell_para_ptr->cellID % (2 * cell_para_ptr->num_PRB_per_bw_config);//直接转换为REG
+    memset(temp_map,1,symbol0_totall_reg_num);//初始化REG占用的标准表
+    for(i = 0;i < 4;i++)
+    {
+      temp_reg_index = k_line + ((i * cell_para_ptr->num_PRB_per_bw_config) >> 1);
+      temp_map[temp_reg_index] = 0;//PCFICH所占的资源标志置0，表示此处已经被占用
+      g_dl_resource_mapping.pcfich_res[i * 4]     = g_symbol0_reg_k[temp_reg_index][0];
+      g_dl_resource_mapping.pcfich_res[i * 4 + 1] = g_symbol0_reg_k[temp_reg_index][1];
+      g_dl_resource_mapping.pcfich_res[i * 4 + 2] = g_symbol0_reg_k[temp_reg_index][2];
+      g_dl_resource_mapping.pcfich_res[i * 4 + 3] = g_symbol0_reg_k[temp_reg_index][3];
+    }
+    n = 0;
+    for(i = 0;i < symbol0_totall_reg_num;i++)
+    {
+      if(1 == temp_map[i])//寻找可继续映射PHICH的REG
+      {
+        temp_map1[n] = i;
+        n++;
+      }
+    }
+    //计算PHICH位置
+    temp_normal = ((phich_Ng_table[cell_para_ptr->g_phich_Ng] * cell_para_ptr->num_PRB_per_bw_config >> 3) + 23) / 24;
+    temp_extend = 2 * ((phich_Ng_table[cell_para_ptr->g_phich_Ng] * cell_para_ptr->num_PRB_per_bw_config >> 3) + 23) / 24;
+    n2 = cell_para_ptr->num_PRB_per_bw_config * 3;//符号2没有参考信号
+    if(1 == cell_para_ptr->num_antenna_port)
+    {
+     n1 = cell_para_ptr->num_PRB_per_bw_config * 3;//符号1没有参考信号
+     n0 = (cell_para_ptr->num_PRB_per_bw_config * 2) - 4;//去掉参考信号以及4个PCFICH reg
+    }
+    else if(2 == cell_para_ptr->num_antenna_port)
+    {
+     n1 = cell_para_ptr->num_PRB_per_bw_config * 3;//符号1没有参考信号
+     n0 = (cell_para_ptr->num_PRB_per_bw_config * 2) - 4;//去掉参考信号以及4个PCFICH reg
+    }
+    else if(4 == cell_para_ptr->num_antenna_port)
+    {
+        n1 = cell_para_ptr->num_PRB_per_bw_config * 2;//符号1有参考信号
+        n0 = (cell_para_ptr->num_PRB_per_bw_config * 2) - 4;//去掉参考信号以及4个PCFICH reg
+    }
+    else
+    {
+     /*alarm*/
+    }
+    g_dl_resource_mapping.n0 = n0;
+    g_dl_resource_mapping.n1 = n1;
+    g_dl_resource_mapping.n2 = n2;//符号2没有参考信号
+    //计算每个子帧的下行控制信道资源位置
+    for(subfn_index = 0;subfn_index < MAX_SUBFN_NUM;subfn_index++)
+    {
+        //计算PCFICH信道的资源位置
+        memcpy(temp_map2,temp_map,symbol0_totall_reg_num);
+        mi = g_const_phich_mi[cell_para_ptr->frame_config][subfn_index];
+        if (0 == cell_para_ptr->N_cp)
+        {
+          g_N_group_phich[subfn_index] = mi * temp_normal;
+        }
+        else
+        {
+          g_N_group_phich[subfn_index] = mi * temp_extend;
+        }
+        
+        for(group_index = 0;group_index < g_N_group_phich[subfn_index];group_index++)//计算PHICH的资源位置
+        {
+          if(0 == cell_para_ptr->phich_Durtion)
+          {
+            l0 = 0;
+            l1 = 0;
+            l2 = 0;
+            n_0 = (cell_para_ptr->cellID * n0 / n0 + group_index) % n0;
+            n_1 = (cell_para_ptr->cellID * n0 / n0 + n0 / 3 + group_index) % n0;
+            n_2 = (cell_para_ptr->cellID * n0 / n0 + 2 * n0 / 3 + group_index) % n0;
+            g_dl_resource_mapping.phich_reg[subfn_index][group_index][0] = temp_map1[n_0];
+            g_dl_resource_mapping.phich_reg[subfn_index][group_index][1] = temp_map1[n_1];
+            g_dl_resource_mapping.phich_reg[subfn_index][group_index][2] = temp_map1[n_2];
+            temp_map2[temp_map1[n_0]] = 0;//将PHICH已经占用的资源位置去掉
+            temp_map2[temp_map1[n_1]] = 0;
+            temp_map2[temp_map1[n_2]] = 0;
+          }
+          else//extended phich duration
+          {
+                  //后续
+          }
+        }
+        
+        symbol0_pdcch_reg_num = n0 - g_N_group_phich[subfn_index] * 3;
+        g_dl_resource_mapping.symbol_pdcch_reg_num[subfn_index][0] = symbol0_pdcch_reg_num;
+        g_dl_resource_mapping.symbol_pdcch_reg_num[subfn_index][1] = n1;
+        g_dl_resource_mapping.symbol_pdcch_reg_num[subfn_index][2] = n2;
+        memcpy(&g_dl_resource_mapping.reg_unused_flag[subfn_index][0],temp_map2,symbol0_totall_reg_num);
+      
+      
+
+    }
+
+
+}
+void pdcch_database_updata(CELL_PARA* cell_para_ptr,
+                          unsigned  char subfn_index)
+{
+      int pdcch_index = 0;
+
+      int pdcch_cce_total  = 0;
+      char pdcch_symbol_num;
+      //计算CFI指示的PDCCH符号数
+      pdcch_cce_total = 0;
+      if((1 == subfn_index) || (6 == subfn_index))
+      {
+          if(2 == cell_para_ptr->pcfich_index)
+          {
+            cell_para_ptr->pcfich_index = 1;//特殊子帧不能配置CFI=3
+          }
+        if(cell_para_ptr->num_PRB_per_bw_config <= 10)
+          {
+              pdcch_symbol_num = 2;
+          }
+          else
+          {
+              pdcch_symbol_num = cell_para_ptr->pcfich_index + 1;
+          }
+      }
+      else
+      {
+        if(cell_para_ptr->num_PRB_per_bw_config <= 10)
+        {
+            pdcch_symbol_num = cell_para_ptr->pcfich_index + 2;
+        }
+        else
+        {
+            pdcch_symbol_num = cell_para_ptr->pcfich_index + 1;
+        }
+      }
+      if(1 == pdcch_symbol_num)
+      {
+        cell_para_ptr->pdcch_total_reg_num[subfn_index] = g_dl_resource_mapping.symbol_pdcch_reg_num[subfn_index][0];
+      }
+      else if(2 == pdcch_symbol_num)
+      {
+        cell_para_ptr->pdcch_total_reg_num[subfn_index] = g_dl_resource_mapping.symbol_pdcch_reg_num[subfn_index][0]
+                                  + g_dl_resource_mapping.symbol_pdcch_reg_num[subfn_index][0];
+      }
+      else if(3 == pdcch_symbol_num)
+      { 
+        cell_para_ptr->pdcch_total_reg_num[subfn_index] = g_dl_resource_mapping.symbol_pdcch_reg_num[subfn_index][0]
+                                  + g_dl_resource_mapping.symbol_pdcch_reg_num[subfn_index][1]
+                                  + g_dl_resource_mapping.symbol_pdcch_reg_num[subfn_index][2];
+      }
+      else
+      {
+        ///
+      }
+      cell_para_ptr->pdcch_total_cce_num[subfn_index] = cell_para_ptr->pdcch_total_reg_num[subfn_index] / 9;
+      //PDCCH采用先时域后频域的映射，计算PDCCH的资源位置
+      f_dl_pdcch_mapping_k(pdcch_symbol_num,
+                           subfn_index,
+                           cell_para_ptr);
+}
+unsigned short f_pdcch_cce_start(unsigned char pdcch_format,
+                   unsigned short rnti,
+                   unsigned short N_cce,
+                   unsigned char subfn,
+                   unsigned char common_pdcch_flag
+                     )
+{
+    //计算搜索空间
+    unsigned int A = 39827;
+    unsigned int D = 65537;
+    unsigned short k = 0;
+    unsigned int Y[10];
+    unsigned char L_common_search[2] = {8,4};
+    unsigned char aggregation_level_table[4] = {1,2,4,8};
+    unsigned short Y_1,Yk;
+    unsigned char index = 0;
+    unsigned char L_index = 0;
+    unsigned short L,M,cce_satrt_index;
+    k = subfn;
+    Y_1 =  rnti;
+    Y[0] = (A * Y_1) % D;//Y[0]存的是协议中的Y（-1）
+    L = aggregation_level_table[pdcch_format];//1,2,4,8
+    for(index = 1;index < MAX_SUBFN_NUM + 1;index++)
+    {
+      Y[index] = (A * Y[index - 1]) % D;
+    }
+    //搜索公共搜索空间
+    if(1 == common_pdcch_flag)//BCCH
+    {
+        Yk = 0;
+        cce_satrt_index = L * (Yk + 0) % (N_cce/L);
+    }
+    else//专用搜索空间
+    {
+        Yk = Y[k + 1];
+        cce_satrt_index = L * (Yk + 0) % (N_cce/L);
+    }
+    return cce_satrt_index;
+}
+
+//计算REG同K的对应关系
+void f_dl_pdcch_mapping_k(char pdcch_symbol_num,
+                          char subfn_index,
+                          CELL_PARA *cell_para_ptr)
+{
+  unsigned char symbol_index = 0;
+  unsigned short n = 0;
+  unsigned short symbol0_k = 0;
+  unsigned short symbol1_k = 0;
+  unsigned short symbol2_k = 0;
+  unsigned short out_put_index = 0;
+  unsigned char *mapping_table_ptr;
+  unsigned char reg_num_per_rb = 0;
+  unsigned short N_reg = 0;
+  unsigned short N_cce = 0;
+  unsigned short *reg_table_ptr;
+  reg_table_ptr = &g_dl_resource_mapping.pdcch_mapping_carrier[subfn_index][0];
+  if(3 == pdcch_symbol_num)
+  {
+    if(4 == cell_para_ptr->num_antenna_port)
+    {
+      mapping_table_ptr = &g_const_pdcch_mapping_table[0][0];
+      reg_num_per_rb = 7;//3个符号加起来每个RB可以有7个REG
+      N_reg = cell_para_ptr->num_PRB_per_bw_config * 2 + cell_para_ptr->num_PRB_per_bw_config * 2 + cell_para_ptr->num_PRB_per_bw_config * 3;
+    }
+    else
+    {
+      mapping_table_ptr = &g_const_pdcch_mapping_table[1][0];
+      reg_num_per_rb = 8;//3个符号加起来每个RB可以有8个REG
+      N_reg = cell_para_ptr->num_PRB_per_bw_config * 2 + cell_para_ptr->num_PRB_per_bw_config * 3 + cell_para_ptr->num_PRB_per_bw_config * 3;
+    }
+  }
+  else if(2 == pdcch_symbol_num)
+  {
+    if(4 == cell_para_ptr->num_antenna_port)
+    {
+      mapping_table_ptr = &g_const_pdcch_mapping_table[2][0];
+      reg_num_per_rb = 4;//2个符号加起来每个RB可以有4个REG
+      N_reg = cell_para_ptr->num_PRB_per_bw_config * 2 + cell_para_ptr->num_PRB_per_bw_config * 2;
+    }
+    else
+    {
+      mapping_table_ptr = &g_const_pdcch_mapping_table[3][0];
+      reg_num_per_rb = 5;//2个符号加起来每个RB可以有5个REG
+      N_reg = cell_para_ptr->num_PRB_per_bw_config * 2 + cell_para_ptr->num_PRB_per_bw_config * 3;
+    }
+  }
+  else
+  {
+    mapping_table_ptr = &g_const_pdcch_mapping_table[4][0];
+    reg_num_per_rb = 2;//1个符号加起来每个RB可以有2个REG
+    N_reg = cell_para_ptr->num_PRB_per_bw_config * 2;
+  }
+
+  for(n = 0;n < N_reg;n++)//按照REG编号，顺序寻找到时频位置
+  {
+    symbol_index = mapping_table_ptr[n % reg_num_per_rb];
+    if(0 == symbol_index)
+    {
+      if(1 == g_dl_resource_mapping.reg_unused_flag[subfn_index][symbol0_k])
+      {
+        reg_table_ptr[out_put_index * 4] = g_symbol0_reg_k[symbol0_k][0];
+        reg_table_ptr[out_put_index * 4 + 1] = g_symbol0_reg_k[symbol0_k][1];
+        reg_table_ptr[out_put_index * 4 + 2] = g_symbol0_reg_k[symbol0_k][2];
+        reg_table_ptr[out_put_index * 4 + 3] = g_symbol0_reg_k[symbol0_k][3];
+        out_put_index++;
+      }
+      symbol0_k++;
+    }
+    else if(1 == symbol_index)
+    {
+      reg_table_ptr[out_put_index * 4] = g_symbol1_reg_k[symbol1_k][0] + 100 * 12;
+      reg_table_ptr[out_put_index * 4 + 1] = g_symbol1_reg_k[symbol1_k][1] + 100 * 12;
+      reg_table_ptr[out_put_index * 4 + 2] = g_symbol1_reg_k[symbol1_k][2] + 100 * 12;
+      reg_table_ptr[out_put_index * 4 + 3] = g_symbol1_reg_k[symbol1_k][3] + 100 * 12;
+      out_put_index++;
+      symbol1_k++;
+    }
+    else if(2 == symbol_index)
+    {
+      reg_table_ptr[out_put_index * 4] = g_symbol2_reg_k[symbol2_k][0] + 100 * 12 * 2;
+      reg_table_ptr[out_put_index * 4 + 1] = g_symbol2_reg_k[symbol2_k][1] + 100 * 12 * 2;
+      reg_table_ptr[out_put_index * 4 + 2] = g_symbol2_reg_k[symbol2_k][2] + 100 * 12 * 2;
+      reg_table_ptr[out_put_index * 4 + 3] = g_symbol2_reg_k[symbol2_k][3] + 100 * 12 * 2;
+      out_put_index++;
+      symbol2_k++;
+    }
+    else
+    {
+      //alarm!
+    }
+  }
+  cell_para_ptr->reg_unused_num[subfn_index] =  out_put_index;
+}
+//计算REG同K的对应关系
+void f_dl_phich_mapping(char subfn_index,
+                      char N_group,
+                      unsigned short *phich_mapping_ptr)
+{
+    unsigned char symbol_index = 0;
+    unsigned short n = 0,i = 0;
+    unsigned short reg_index = 0;
+    unsigned short symbol0_k = 0;
+    unsigned short symbol1_k = 0;
+    unsigned short symbol2_k = 0;
+    unsigned short out_put_index = 0;
+    unsigned char *mapping_table_ptr;
+    unsigned char reg_num_per_rb = 0;
+    unsigned short N_reg = 0;
+    unsigned short N_cce = 0;
+    unsigned short *reg_table_ptr;
+    unsigned short *mapping_temp_ptr;
+    int reg_index0,reg_index1,reg_index2,reg_index3;
+    reg_table_ptr = &g_dl_resource_mapping.pdcch_mapping_carrier[subfn_index][0];
+    mapping_temp_ptr = phich_mapping_ptr;
+    for(n = 0;n < N_group;n++)
+    {
+        for(i = 0;i < 3;i++)
+        {
+          reg_index = g_dl_resource_mapping.phich_reg[subfn_index][n][i];
+          mapping_temp_ptr[i * 4 + 0] = g_symbol0_reg_k[reg_index][0];
+          mapping_temp_ptr[i * 4 + 1] = g_symbol0_reg_k[reg_index][1];
+          mapping_temp_ptr[i * 4 + 2] = g_symbol0_reg_k[reg_index][2];
+          mapping_temp_ptr[i * 4 + 3] = g_symbol0_reg_k[reg_index][3];
+        }
+        mapping_temp_ptr+=12;
+    }
+}
+#if 0
+void read_user_para_config(FILE* fp,USER_PARA* user_para_ptr,CELL_PARA* cell_para_ptr)
+{
+    signed int         i;
+    signed char        lineBuf[300];
+    char*       ptrBuf;
+    
+  
+    while (fgets (lineBuf, 300, fp) != NULL)
+    {
+        if ((ptrBuf = strstr(lineBuf, "="))!=NULL)
+        {
+            ptrBuf ++;
+            if (strstr(lineBuf,"Ncodeword")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 user_para_ptr[0].num_code_word = i;
+                 continue;
+            }
+    
+            if (strstr(lineBuf,"tbSize")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 user_para_ptr[0].tbSize = i;
+                 continue;
+            
+            }
+            
+            if (strstr(lineBuf,"MaxNumHarqProcess")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 user_para_ptr[0].maxNumHarqProcess = i;
+                 continue;
+            
+            }
+            
+            if (strstr(lineBuf,"ueTransMode")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 user_para_ptr[0].ueTransMode = i;
+                 continue;
+            
+            }
+            
+            if (strstr(lineBuf,"Nir")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 user_para_ptr[0].Nir = i / user_para_ptr[0].maxNumHarqProcess;
+                 continue;
+            }
+            
+            if (strstr(lineBuf,"modulation")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 user_para_ptr[0].modulation = i;
+                 continue;
+            }
+            
+            if (strstr(lineBuf,"NUMLAYER")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 
+                 user_para_ptr[0].numLayers = i;
+                 continue;
+            }
+
+            
+            if (strstr(lineBuf,"bitmap")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 
+                 user_para_ptr[0].bitmap = i;
+                 user_para_ptr[0].num_PRB = 0;
+                 for(i = 0;i < 32;i++)
+                 {
+                   user_para_ptr[0].num_PRB += ((user_para_ptr[0].bitmap >> i) & 1) * cell_para_ptr->RBG_size;
+                 }
+                 continue;
+            }
+            
+            if (strstr(lineBuf,"rnti")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 
+                 user_para_ptr[0].rnti = i;
+                 continue;
+            }
+            
+            if (strstr(lineBuf,"ueCategory")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 
+                 user_para_ptr[0].ueCategory = i;
+                 continue;
+            }
+            
+            if (strstr(lineBuf,"rvIdx")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 
+                 user_para_ptr[0].rvIdx = i;
+                 continue;
+            }
+            
+            if (strstr(lineBuf,"DelayMod")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 
+                 user_para_ptr[0].delay_mod = i;
+                 continue;
+            }
+            
+            if (strstr(lineBuf,"PA")!=NULL)
+            {
+                 sscanf(ptrBuf,"%d", &i);
+                 
+                 user_para_ptr[0].P_A = i;
+                 continue;
+            }
+
+            
+        }
+    }
+
+    return;
+}
+#endif

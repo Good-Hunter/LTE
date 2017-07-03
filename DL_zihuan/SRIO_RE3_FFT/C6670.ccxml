@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<configurations XML_version="1.2" id="configurations_0">
+<configuration XML_version="1.2" id="Texas Instruments XDS100v2 USB Emulator_0">
+        <instance XML_version="1.2" desc="Texas Instruments XDS100v2 USB Emulator_0" href="connections/TIXDS100v2_Connection.xml" id="Texas Instruments XDS100v2 USB Emulator_0" xml="TIXDS100v2_Connection.xml" xmlpath="connections"/>
+        <connection XML_version="1.2" id="Texas Instruments XDS100v2 USB Emulator_0">
+            <instance XML_version="1.2" href="drivers/tixds100v2icepick_d.xml" id="drivers" xml="tixds100v2icepick_d.xml" xmlpath="drivers"/>
+            <instance XML_version="1.2" href="drivers/tixds100v2c66xx.xml" id="drivers" xml="tixds100v2c66xx.xml" xmlpath="drivers"/>
+            <instance XML_version="1.2" href="drivers/tixds100v2cs_dap.xml" id="drivers" xml="tixds100v2cs_dap.xml" xmlpath="drivers"/>
+            <instance XML_version="1.2" href="drivers/tixds100v2csstm.xml" id="drivers" xml="tixds100v2csstm.xml" xmlpath="drivers"/>
+            <instance XML_version="1.2" href="drivers/tixds100v2etbcs.xml" id="drivers" xml="tixds100v2etbcs.xml" xmlpath="drivers"/>
+            <property Type="choicelist" Value="0" id="The JTAG TCLK Frequency (MHz)">
+                <choice Name="Fixed with user specified slower value" value="SPECIFIC">
+                    <property Type="stringfield" Value="0.1MHz" id="-- Enter a value from 488Hz to 1.0MHz"/>
+                </choice>
+            </property>
+            <platform XML_version="1.2" id="platform_0">
+                <instance XML_version="1.2" desc="TMS320C6670_0" href="devices/C6670.xml" id="TMS320C6670_0" xml="C6670.xml" xmlpath="devices"/>
+            <instance XML_version="1.2" desc="TMS320C6670_1" href="devices/C6670.xml" id="TMS320C6670_1" xml="C6670.xml" xmlpath="devices"/>
+                <device HW_revision="1" XML_version="1.2" description="C66x core" id="TMS320C6670_1" partnum="TMS320C6670" simulation="no">
+                    <router HW_revision="1.0" XML_version="1.2" desc="IcePick_E" description="ICEPick_D Router" id="IcePick_D_0" isa="ICEPICK_D">
+                        <subpath desc="subpath_4" id="subpath_0">
+                            <cpu HW_revision="1.0" XML_version="1.2" desc="C66xx_4" description="C66xx CPU" deviceSim="false" id="C66xx_0" isa="TMS320c66xx">
+                                <property Type="filepathfield" Value="..\..\..\..\..\CommAgility_Amc2c66xx_V0_4_9\dsp\ccs\AMC2C66\gel\AMC26670_6616_1200MHz.gel" id="GEL File"/>
+                            </cpu>
+                        </subpath>
+                        <subpath desc="subpath_5" id="subpath_1">
+                            <cpu HW_revision="1.0" XML_version="1.2" desc="C66xx_5" description="C66xx CPU" deviceSim="false" id="C66xx_1" isa="TMS320c66xx">
+                                <property Type="filepathfield" Value="..\..\..\..\..\CommAgility_Amc2c66xx_V0_4_9\dsp\ccs\AMC2C66\gel\AMC26670_6616_1200MHz.gel" id="GEL File"/>
+                            </cpu>
+                        </subpath>
+                        <subpath desc="subpath_6" id="subpath_2">
+                            <cpu HW_revision="1.0" XML_version="1.2" desc="C66xx_6" description="C66xx CPU" deviceSim="false" id="C66xx_2" isa="TMS320c66xx">
+                                <property Type="filepathfield" Value="..\..\..\..\..\CommAgility_Amc2c66xx_V0_4_9\dsp\ccs\AMC2C66\gel\AMC26670_6616_1200MHz.gel" id="GEL File"/>
+                            </cpu>
+                        </subpath>
+                        <subpath desc="subpath_7" id="subpath_3">
+                            <cpu HW_revision="1.0" XML_version="1.2" desc="C66xx_7" description="C66xx CPU" deviceSim="false" id="C66xx_3" isa="TMS320c66xx">
+                                <property Type="filepathfield" Value="..\..\..\..\..\CommAgility_Amc2c66xx_V0_4_9\dsp\ccs\AMC2C66\gel\AMC26670_6616_1200MHz.gel" id="GEL File"/>
+                            </cpu>
+                        </subpath>
+                        <subpath desc="DAP_0" id="subpath_4">
+                            <router HW_revision="1.0" XML_version="1.2" desc="CS_DAP_1" description="CS_DAP Router" id="CS_DAP_0" isa="CS_DAP">
+                                <subpath desc="Trace_STM_0" id="Trace_STM">
+                                    <cpu HW_revision="1.0" XML_version="1.2" desc="CSSTM_1" description="CS System Trace" deviceSim="false" id="CSSTM_0" isa="TMS470R26X"/>
+                                    <cpu HW_revision="1.0" XML_version="1.2" desc="TETB_STM_0" description="CS Embedded Trace Buffer" deviceSim="false" id="TETB_STM" isa="CS_ETB"/>
+                                </subpath>
+                            </router>
+                        </subpath>
+                    </router>
+                </device>
+            <device HW_revision="1" XML_version="1.2" description="C66x core" id="TMS320C6670_0" partnum="TMS320C6670" simulation="no">
+                    <router HW_revision="1.0" XML_version="1.2" description="ICEPick_D Router" id="IcePick_D_0" isa="ICEPICK_D">
+                        <subpath id="subpath_0">
+                            <cpu HW_revision="1.0" XML_version="1.2" desc="C66xx_0" description="C66xx CPU" deviceSim="false" id="C66xx_0" isa="TMS320c66xx">
+                                <property Type="filepathfield" Value="..\..\..\..\..\CommAgility_Amc2c66xx_V0_4_9\dsp\ccs\AMC2C66\gel\AMC26670_6616_1200MHz.gel" id="GEL File"/>
+                            </cpu>
+                        </subpath>
+                    <subpath id="subpath_1">
+                            <cpu HW_revision="1.0" XML_version="1.2" description="C66xx CPU" deviceSim="false" id="C66xx_1" isa="TMS320c66xx">
+                                <property Type="filepathfield" Value="..\..\..\..\..\CommAgility_Amc2c66xx_V0_4_9\dsp\ccs\AMC2C66\gel\AMC26670_6616_1200MHz.gel" id="GEL File"/>
+                            </cpu>
+                        </subpath>
+                        <subpath id="subpath_2">
+                            <cpu HW_revision="1.0" XML_version="1.2" desc="C66xx_2" description="C66xx CPU" deviceSim="false" id="C66xx_2" isa="TMS320c66xx">
+                                <property Type="filepathfield" Value="..\..\..\..\..\CommAgility_Amc2c66xx_V0_4_9\dsp\ccs\AMC2C66\gel\AMC26670_6616_1200MHz.gel" id="GEL File"/>
+                            </cpu>
+                        </subpath>
+                        <subpath id="subpath_3">
+                            <cpu HW_revision="1.0" XML_version="1.2" desc="C66xx_3" description="C66xx CPU" deviceSim="false" id="C66xx_3" isa="TMS320c66xx">
+                                <property Type="filepathfield" Value="..\..\..\..\..\CommAgility_Amc2c66xx_V0_4_9\dsp\ccs\AMC2C66\gel\AMC26670_6616_1200MHz.gel" id="GEL File"/>
+                            </cpu>
+                        </subpath>
+                    </router>
+                </device>
+            </platform>
+        </connection>
+    </configuration>
+</configurations>

@@ -1,0 +1,870 @@
+******************************************************************************
+               TMS320C6x Linker PC v7.4.2                      
+******************************************************************************
+>> Linked Thu Jun 15 09:28:46 2017
+
+OUTPUT FILE NAME:   <BSLC6670_srio_discovery_ex_1.out>
+ENTRY POINT SYMBOL: "_c_int00"  address: 10812580
+
+
+MEMORY CONFIGURATION
+
+         name            origin    length      used     unused   attr    fill
+----------------------  --------  ---------  --------  --------  ----  --------
+  LOCAL_INT_VECT        00800000   00000100  00000000  00000100  RWIX
+  LOCAL_BOARD_INFO      00800100   00000100  00000000  00000100  RWIX
+  LOCAL_L2              00800200   000ffe00  00000000  000ffe00  RWIX
+  LOCAL_L1P             00e00000   00008000  00000000  00008000  RWIX
+  LOCAL_L1D             00f00000   00008000  00000000  00008000  RWIX
+  CORE0_INT_VECT        10800000   00000100  00000000  00000100  RWIX
+  CORE0_BOARD_INFO      10800100   00000100  00000000  00000100  RWIX
+  CORE0_L2              10800200   000ffe00  0001b95f  000e44a1  RWIX
+  CORE0_L1P             10e00000   00008000  00000000  00008000  RWIX
+  CORE0_L1D             10f00000   00008000  00000000  00008000  RWIX
+  CORE1_INT_VECT        11800000   00000100  00000000  00000100  RWIX
+  CORE1_BOARD_INFO      11800100   00000100  00000000  00000100  RWIX
+  CORE1_L2              11800200   000ffe00  00000000  000ffe00  RWIX
+  CORE1_L1P             11e00000   00008000  00000000  00008000  RWIX
+  CORE1_L1D             11f00000   00008000  00000000  00008000  RWIX
+  CORE2_INT_VECT        12800000   00000100  00000000  00000100  RWIX
+  CORE2_BOARD_INFO      12800100   00000100  00000000  00000100  RWIX
+  CORE2_L2              12800200   000ffe00  00000000  000ffe00  RWIX
+  CORE2_L1P             12e00000   00008000  00000000  00008000  RWIX
+  CORE2_L1D             12f00000   00008000  00000000  00008000  RWIX
+  CORE3_INT_VECT        13800000   00000100  00000000  00000100  RWIX
+  CORE3_BOARD_INFO      13800100   00000100  00000000  00000100  RWIX
+  CORE3_L2              13800200   000ffe00  00000000  000ffe00  RWIX
+  CORE3_L1P             13e00000   00008000  00000000  00008000  RWIX
+  CORE3_L1D             13f00000   00008000  00000000  00008000  RWIX
+  DDR3                  80000000   40000000  00000000  40000000  RWIX
+
+
+SEGMENT ALLOCATION MAP
+
+run origin  load origin   length   init length attrs members
+----------  ----------- ---------- ----------- ----- -------
+10800200    10800200    00013b60   00013b60    r-x
+  10800200    10800200    00013b60   00013b60    r-x .text
+10813d60    10813d60    00004a20   00000000    rw-
+  10813d60    10813d60    00003000   00000000    rw- .stack
+  10816d60    10816d60    00001a20   00000000    rw- .far
+10818780    10818780    0000105f   0000105f    r--
+  10818780    10818780    0000105f   0000105f    r-- .const
+108197e0    108197e0    00001000   00000000    rw-
+  108197e0    108197e0    00001000   00000000    rw- .sysmem
+1081a7e0    1081a7e0    00000be0   00000be0    rw-
+  1081a7e0    1081a7e0    00000638   00000638    rw- .bss
+  1081ae18    1081ae18    000005a8   000005a8    rw- .fardata
+1081b400    1081b400    00000200   00000200    r-x
+  1081b400    1081b400    00000200   00000200    r-x .csl_vect
+1081b600    1081b600    00000120   00000000    rw-
+  1081b600    1081b600    00000120   00000000    rw- .cio
+1081b720    1081b720    000000f0   000000f0    r--
+  1081b720    1081b720    000000f0   000000f0    r-- .switch
+1081b810    1081b810    0000009c   0000009c    rw-
+  1081b810    1081b810    0000009c   0000009c    rw- .neardata
+1081b8ac    1081b8ac    000002f4   000002f4    r--
+  1081b8ac    1081b8ac    000002f4   000002f4    r-- .cinit
+
+
+SECTION ALLOCATION MAP
+
+ output                                  attributes/
+section   page    origin      length       input sections
+--------  ----  ----------  ----------   ----------------
+.text      0    10800200    00013b60     
+                  10800200    00003000     BSLC667X_srio_discovery_ex.obj (.text)
+                  10803200    00000880     bslc6670.ae66e : BSLC667X_ddr3_hw_config.o (.text:BSLC667X_section:dsp_ddr3:BSLC667X_Ddr3HwSetup)
+                  10803a80    00000880                    : BSLC667X_mmc_fru.o (.text:BSLC667X_section:mmc:BSLC667X_ReadMmcFru)
+                  10804300    00000700                    : BSLC667X_srio_init.o (.text:BSLC667X_section:dsp_srio:BSLC667X_SrioInitialise)
+                  10804a00    000006c0                    : BSLC667X_srio_hw_setup_ext.o (.text:BSLC667X_section:srio:BSLC667X_SrioHwConfig)
+                  108050c0    000005e0                    : BSLC667X_srio_init.o (.text:BSLC667X_section:dsp_srio:BSLC667X_SrioIntcInitialise)
+                  108056a0    000005c0     rts6600e_elf.lib : divd.obj (.text:__c6xabi_divd)
+                  10805c60    000005c0                      : _printfi.obj (.text:_getarg_diouxp)
+                  10806220    000005a0     bslc6670.ae66e : BSLC667X_spi_hw_config.o (.text:BSLC667X_section:dsp_spi:BSLC667X_SpiHwSetup)
+                  108067c0    00000500                    : BSLC667X_pllc_hw_config.o (.text:BSLC667X_section:dsp_pllc:BSLC667X_PllcHwSetup)
+                  10806cc0    000004e0                    : BSLC667X_init.o (.text:BSLC667X_section:common:BSLC667X_GetBoardConfig)
+                  108071a0    00000460                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetDestOperationCAR)
+                  10807600    00000460                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetSourceOperationCAR)
+                  10807a60    00000460     rts6600e_elf.lib : _printfi.obj (.text:_printfi)
+                  10807ec0    00000460                      : _printfi.obj (.text:_setfield)
+                  10808320    00000420     bslc6670.ae66e : BSLC667X_srio_port_sync.o (.text:BSLC667X_section:dsp_srio:BSLC667X_SrioDspToCps1848PortSync)
+                  10808740    00000420                    : BSLC667X_mmc_cntl.o (.text:BSLC667X_section:mmc:BSLC667X_MmcSendIpmiRqAsync)
+                  10808b60    00000400                    : BSLC667X_srio_lsu_xfer_sync.o (.text:CSL_SRIO_GetLSUCompletionCode)
+                  10808f60    000003c0                    : BSLC667X_mmc_cntl_poll_recv.o (.text:BSLC667X_section:mmc:BSLC667X_MmcProcessMmcRs)
+                  10809320    000003c0     ti.csl.intc.ae66e : csl_intcHwControl.oe66e (.text:csl_section:intc:CSL_intcHwControl)
+                  108096e0    000003a0     bslc6670.ae66e : BSLC667X_srio_misc_interrupt_handler.o (.text:BSLC667X_section:dsp_srio:BSLC667X_SrioInterruptHandler)
+                  10809a80    000003a0     rts6600e_elf.lib : fputs.obj (.text:fputs)
+                  10809e20    00000340     bslc6670.ae66e : BSLC667X_init.o (.text:BSLC667X_section:common:BSLC667X_RetrieveBoardInfo)
+                  1080a160    00000340                    : BSLC667X_srio_misc_interrupt_handler.o (.text:BSLC667X_section:dsp_srio:BSLC667X_SrioDoorBellIntrHandler)
+                  1080a4a0    00000320     rts6600e_elf.lib : _printfi.obj (.text:_pproc_fge)
+                  1080a7c0    000002e0                      : _printfi.obj (.text:_pproc_fwp)
+                  1080aaa0    000002c0     bslc6670.ae66e : BSLC667X_srio_lsu_queue_intr.o (.text:BSLC667X_section:dsp_srio:BSLC667X_SrioLsuInterruptHandler)
+                  1080ad60    000002a0     rts6600e_elf.lib : _printfi.obj (.text:fcvt)
+                  1080b000    00000280     bslc6670.ae66e : BSLC667X_srio_port_sync.o (.text:BSLC667X_section:dsp_srio:BSLC667X_SrioCps1848ToEndPointPortSync)
+                  1080b280    00000280     rts6600e_elf.lib : _printfi.obj (.text:ecvt)
+                  1080b500    00000280                      : memory.obj (.text:free)
+                  1080b780    00000240     bslc6670.ae66e : BSLC667X_control_reg_read.o (.text:BSLC667X_section:control:BSLC667X_ControlRegRead)
+                  1080b9c0    00000240                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetProcessingElementFeatures)
+                  1080bc00    00000240     rts6600e_elf.lib : imath64.obj (.text:__c6xabi_divull)
+                  1080be40    00000240                      : _printfi.obj (.text:_pconv_e)
+                  1080c080    00000240                      : _printfi.obj (.text:_pproc_diouxp)
+                  1080c2c0    00000220     bslc6670.ae66e : BSLC667X_control_reg_write.o (.text:BSLC667X_section:control:BSLC667X_ControlRegWrite)
+                  1080c4e0    00000220     rts6600e_elf.lib : _printfi.obj (.text:_pproc_str)
+                  1080c700    00000220     ti.csl.intc.ae66e : csl_intcOpen.oe66e (.text:csl_section:intc:CSL_intcOpen)
+                  1080c920    00000220                       : _csl_intcCombEventDispatcher.oe66e (.text:csl_section:intc:_CSL_intcEvent0Dispatcher)
+                  1080cb40    00000220                       : _csl_intcCombEventDispatcher.oe66e (.text:csl_section:intc:_CSL_intcEvent1Dispatcher)
+                  1080cd60    00000220                       : _csl_intcCombEventDispatcher.oe66e (.text:csl_section:intc:_CSL_intcEvent2Dispatcher)
+                  1080cf80    00000220                       : _csl_intcCombEventDispatcher.oe66e (.text:csl_section:intc:_CSL_intcEvent3Dispatcher)
+                  1080d1a0    00000220     rts6600e_elf.lib : fputc.obj (.text:fputc)
+                  1080d3c0    00000200     bslc6670.ae66e : BSLC667X_intc_init.o (.text:BSLC667X_section:dsp_intc:BSLC667X_IntcInitialise)
+                  1080d5c0    00000200                    : BSLC667X_srio_lsu_xfer_sync.o (.text:CSL_SRIO_SetLSUTransfer)
+                  1080d7c0    00000200     rts6600e_elf.lib : _printfi.obj (.text:_pconv_g)
+                  1080d9c0    00000200                      : setvbuf.obj (.text:setvbuf)
+                  1080dbc0    000001e0     ti.csl.intc.ae66e : _csl_intcDispatcher.oe66e (.text:csl_section:intc:_CSL_intcDispatcher)
+                  1080dda0    000001c0     rts6600e_elf.lib : _printfi.obj (.text:_mcpy)
+                  1080df60    000001a0     bslc6670.ae66e : BSLC667X_init.o (.text:BSLC667X_section:common:BSLC667X_Initialise)
+                  1080e100    000001a0                    : BSLC667X_control_utils.o (.text:BSLC667X_section:control:BSLC667X_ControlUartRead)
+                  1080e2a0    000001a0                    : BSLC667X_srio_update_default_hwconfig.o (.text:BSLC667X_section:dsp_srio:BSLC667X_SrioUpdateDefaultHwConfig)
+                  1080e440    000001a0     rts6600e_elf.lib : trgdrv.obj (.text:HOSTrename)
+                  1080e5e0    000001a0                      : imath40.obj (.text:__c6xabi_divul)
+                  1080e780    000001a0     bslc6670.ae66e : BSLC667X_control_utils.o (.text:ca_section:control:BSLC667X_ControlUartSrcCntlConAtoB)
+                  1080e920    00000180                    : BSLC667X_control_utils.o (.text:BSLC667X_section:control:BSLC667X_ControlUartWrite)
+                  1080eaa0    00000180     rts6600e_elf.lib : copy_decompress_rle.obj (.text:__TI_decompress_rle_core)
+                  1080ec20    00000180                      : memory.obj (.text:malloc)
+                  1080eda0    00000160     bslc6670.ae66e : BSLC667X_srio_lsu_xfer_sync.o (.text:BSLC667X_section:dsp_srio:BSLC667X_DoLsuXferSync)
+                  1080ef00    00000160                    : BSLC667X_srio_port_sync.o (.text:BSLC667X_section:dsp_srio:BSLC667X_SrioCps1848PortReset)
+                  1080f060    00000160                    : BSLC667X_spi_xfer.o (.text:ca_section:dsp_spi:BSLC667X_SpiTransfer)
+                  1080f1c0    00000140     ti.csl.ae66e : csl_chip.oe66e (.text:CSL_chipReadReg)
+                  1080f300    00000140     rts6600e_elf.lib : _printfi.obj (.text:_pproc_fflags)
+                  1080f440    00000140     ti.csl.intc.ae66e : csl_intcInit.oe66e (.text:csl_section:intc:CSL_intcInit)
+                  1080f580    00000140                       : _csl_intcIntrEnDisRes.oe66e (.text:csl_section:intc)
+                  1080f6c0    00000140     rts6600e_elf.lib : lowlev.obj (.text:getdevice)
+                  1080f800    00000120     bslc6670.ae66e : BSLC667X_srio_directio_xfer.o (.text:BSLC667X_section:dsp_srio:BSLC667X_SrioDirectIORdSync)
+                  1080f920    00000120                    : BSLC667X_srio_directio_xfer.o (.text:BSLC667X_section:dsp_srio:BSLC667X_SrioDirectIOWrSync)
+                  1080fa40    00000120                    : BSLC667X_mmc_cntl_poll_recv.o (.text:BSLC667X_section:mmc:BSLC667X_MmcPollReceiveResponse)
+                  1080fb60    00000120     rts6600e_elf.lib : fclose.obj (.text:_closefile)
+                  1080fc80    00000120                      : _printfi.obj (.text:_ltostr)
+                  1080fda0    00000120                      : fseek.obj (.text:fseek)
+                  1080fec0    00000100     bslc6670.ae66e : BSLC667X_psc_hw_config.o (.text:BSLC667X_section:dsp_psc:BSLC667X_PscHwSetup)
+                  1080ffc0    00000100                    : BSLC667X_spi_init.o (.text:BSLC667X_section:dsp_spi:BSLC667X_SpiInitialise)
+                  108100c0    00000100                    : BSLC667X_srio_maint_xfer.o (.text:BSLC667X_section:dsp_srio:BSLC667X_SrioMaintWrSync)
+                  108101c0    00000100     rts6600e_elf.lib : trgdrv.obj (.text:HOSTlseek)
+                  108102c0    00000100                      : autoinit.obj (.text:_auto_init_elf)
+                  108103c0    00000100                      : _io_perm.obj (.text:_wrt_ok)
+                  108104c0    00000100                      : cpy_tbl.obj (.text:copy_in)
+                  108105c0    000000e0     bslc6670.ae66e : BSLC667X_init.o (.text:BSLC667X_GetDspSpeedGrade)
+                  108106a0    000000e0                    : BSLC667X_pllc_init.o (.text:BSLC667X_section:dsp_pllc:BSLC667X_PllcInitialise)
+                  10810780    000000e0     rts6600e_elf.lib : trgdrv.obj (.text:HOSTopen)
+                  10810860    000000e0                      : _printfi.obj (.text:_div)
+                  10810940    000000e0                      : atoi.obj (.text:atoi)
+                  10810a20    000000e0                      : lowlev.obj (.text:close)
+                  10810b00    000000e0                      : copy_zero_init.obj (.text:decompress:ZI:__TI_zero_init)
+                  10810be0    000000e0                      : ltoa.obj (.text:ltoa)
+                  10810cc0    000000e0                      : memset.obj (.text:memset)
+                  10810da0    000000e0                      : printf.obj (.text:printf)
+                  10810e80    000000c0     bslc6670.ae66e : BSLC667X_control_utils.o (.text:BSLC667X_section:control:BSLC667X_ControlUartEmptyFifo)
+                  10810f40    000000c0                    : BSLC667X_srio_maint_xfer.o (.text:BSLC667X_section:dsp_srio:BSLC667X_SrioMaintRdSync)
+                  10811000    000000c0                    : BSLC667X_mmc_cntl.o (.text:BSLC667X_section:mmc:BSLC667X_MmcSendIpmiRq)
+                  108110c0    000000c0                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_BootCfgSetSRIOSERDESRxConfig)
+                  10811180    000000c0                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_BootCfgSetSRIOSERDESTxConfig)
+                  10811240    000000c0     rts6600e_elf.lib : trgdrv.obj (.text:HOSTread)
+                  10811300    000000c0                      : trgdrv.obj (.text:HOSTunlink)
+                  108113c0    000000c0                      : trgdrv.obj (.text:HOSTwrite)
+                  10811480    000000c0                      : divu.obj (.text:__divu)
+                  10811540    000000c0                      : fflush.obj (.text:_doflush)
+                  10811600    000000c0                      : exit.obj (.text:exit)
+                  108116c0    000000c0                      : tls.obj (.text:tls:init:__TI_tls_init)
+                  10811780    000000a0     bslc6670.ae66e : BSLC667X_srio_port_sync.o (.text:BSLC667X_getQuadConfig)
+                  10811820    000000a0                    : BSLC667X_mmc_ipmi_misc.o (.text:BSLC667X_section:mmc:BSLC667X_MmcGetGeographicAddr)
+                  108118c0    000000a0                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetPacketForwarding)
+                  10811960    000000a0     rts6600e_elf.lib : trgdrv.obj (.text:HOSTclose)
+                  10811a00    000000a0                      : fopen.obj (.text:_cleanup)
+                  10811aa0    000000a0                      : _printfi.obj (.text:_ecpy)
+                  10811b40    000000a0                      : _printfi.obj (.text:_fcpy)
+                  10811be0    000000a0                      : memory.obj (.text:_minit)
+                  10811c80    000000a0                      : _printfi.obj (.text:_pconv_f)
+                  10811d20    000000a0     ti.csl.intc.ae66e : csl_intcClose.oe66e (.text:csl_section:intc:CSL_intcClose)
+                  10811dc0    000000a0     rts6600e_elf.lib : lowlev.obj (.text:finddevice)
+                  10811e60    000000a0                      : lowlev.obj (.text:lseek)
+                  10811f00    000000a0                      : memcpy64.obj (.text:memcpy)
+                  10811fa0    000000a0                      : memory.obj (.text:minsert)
+                  10812040    000000a0                      : memory.obj (.text:mremove)
+                  108120e0    000000a0                      : lowlev.obj (.text:write)
+                  10812180    00000080     bslc6670.ae66e : BSLC667X_ddr3_init.o (.text:BSLC667X_section:dsp_ddr3:BSLC667X_Ddr3Initialise)
+                  10812200    00000080                    : BSLC667X_srio_port_sync.o (.text:BSLC667X_section:dsp_srio:BSLC667X_SrioCps1848MaintRd)
+                  10812280    00000080                    : BSLC667X_srio_port_sync.o (.text:BSLC667X_section:dsp_srio:BSLC667X_SrioCps1848MaintWr)
+                  10812300    00000080                    : BSLC667X_mmc_fru.o (.text:BSLC667X_section:mmc:BSLC667X_MmcFruCheckSum)
+                  10812380    00000080                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetPLMPortDiscoveryTimer)
+                  10812400    00000080                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetPLMPortSilenceTimer)
+                  10812480    00000080                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetPortGeneralCSR)
+                  10812500    00000080     rts6600e_elf.lib : llshift.obj (.text:__c6xabi_llshl)
+                  10812580    00000080                      : boot.obj (.text:_c_int00)
+                  10812600    00000080                      : trgmsg.obj (.text:readmsg)
+                  10812680    00000080                      : lowlev.obj (.text:unlink)
+                  10812700    00000060     bslc6670.ae66e : BSLC667X_delay.o (.text:BSLC667X_section:common:BSLC667X_MicrosecWait)
+                  10812760    00000060                    : BSLC667X_mmc_init.o (.text:BSLC667X_section:mmc:BSLC667X_MmcInitialise)
+                  108127c0    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_Enable5GBaud)
+                  10812820    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_EnableBlock)
+                  10812880    00000060                    : BSLC667X_srio_lsu_xfer_sync.o (.text:CSL_SRIO_GetLSUContextTransaction)
+                  108128e0    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_IsPortOk)
+                  10812940    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetAssemblyInfo)
+                  108129a0    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetDataStreamingMTU)
+                  10812a00    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetDeviceID)
+                  10812a60    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetDeviceIDCSR)
+                  10812ac0    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetFlowControl)
+                  10812b20    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetLLMPortIPPrescalar)
+                  10812b80    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetLLMResetControl)
+                  10812be0    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetLocalConfig0SpaceInfo)
+                  10812c40    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetPEExtendedAddressingControl)
+                  10812ca0    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetPLMPortPathControlMode)
+                  10812d00    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetPLMPortPowerDownControl)
+                  10812d60    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetPortLinkTimeoutCSR)
+                  10812dc0    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetPortResponseTimeoutCSR)
+                  10812e20    00000060                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetPortWriteReceptionCapture)
+                  10812e80    00000060     rts6600e_elf.lib : cpp_init.obj (.text:__TI_cpp_init)
+                  10812ee0    00000060                      : frcmpyd_div.obj (.text:__c6xabi_frcmpyd_div)
+                  10812f40    00000060                      : llshift.obj (.text:__c6xabi_llshru)
+                  10812fa0    00000060                      : imath64.obj (.text:_subcull)
+                  10813000    00000060                      : memccpy.obj (.text:memccpy)
+                  10813060    00000060                      : trgmsg.obj (.text:writemsg)
+                  108130c0    00000040     bslc6670.ae66e : BSLC667X_control_utils.o (.text:BSLC667X_section:control:BSLC667X_ControlGetBoardInfo)
+                  10813100    00000040                    : BSLC667X_control_utils.o (.text:BSLC667X_section:control:BSLC667X_ControlGetControlRevision)
+                  10813140    00000040                    : BSLC667X_control_utils.o (.text:BSLC667X_section:control:BSLC667X_ControlGetControlScratch)
+                  10813180    00000040                    : BSLC667X_control_init.o (.text:BSLC667X_section:control:BSLC667X_ControlInitialise)
+                  108131c0    00000040                    : BSLC667X_control_utils.o (.text:BSLC667X_section:control:BSLC667X_ControlSetControlScratch)
+                  10813200    00000040                    : BSLC667X_dsp_cntl.o (.text:BSLC667X_section:dsp_gpio:BSLC667X_DspGetGeoAddr)
+                  10813240    00000040                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_BootCfgGetSRIOSERDESStatus)
+                  10813280    00000040                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_BootCfgSetSRIOSERDESConfigPLL)
+                  108132c0    00000040                    : BSLC667X_ddr3_hw_config.o (.text:CSL_BootCfgUnlockKicker)
+                  10813300    00000040                    : BSLC667X_pllc_hw_config.o (.text:CSL_BootCfgUnlockKicker)
+                  10813340    00000040                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_BootCfgUnlockKicker)
+                  10813380    00000040                    : BSLC667X_srio_init.o (.text:CSL_CPINTC_mapSystemIntrToChannel)
+                  108133c0    00000040     ti.csl.ae66e : csl_cpIntcGetBaseAddress.oe66e (.text:CSL_CPINTC_open)
+                  10813400    00000040     bslc6670.ae66e : BSLC667X_psc_hw_config.o (.text:CSL_PSC_disablePowerDomain)
+                  10813440    00000040                    : BSLC667X_psc_hw_config.o (.text:CSL_PSC_enablePowerDomain)
+                  10813480    00000040                    : BSLC667X_psc_hw_config.o (.text:CSL_PSC_isStateTransitionDone)
+                  108134c0    00000040                    : BSLC667X_psc_hw_config.o (.text:CSL_PSC_setModuleNextState)
+                  10813500    00000040                    : BSLC667X_psc_hw_config.o (.text:CSL_PSC_startStateTransition)
+                  10813540    00000040                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_ClearLSUPendingInterrupt)
+                  10813580    00000040                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_DisableBlock)
+                  108135c0    00000040                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_EnablePeripheral)
+                  10813600    00000040                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_GlobalDisable)
+                  10813640    00000040                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_GlobalEnable)
+                  10813680    00000040                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetBootComplete)
+                  108136c0    00000040                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetHostDeviceID)
+                  10813700    00000040                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetLocalConfig1SpaceInfo)
+                  10813740    00000040                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetNormalMode)
+                  10813780    00000040                    : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetPrescalarSelect)
+                  108137c0    00000040                    : BSLC667X_srio_lsu_queue_intr.o (.text:CSL_intcEventClear)
+                  10813800    00000040                    : BSLC667X_srio_misc_interrupt_handler.o (.text:CSL_intcEventClear)
+                  10813840    00000040     rts6600e_elf.lib : isinf.obj (.text:__c6xabi_isinf)
+                  10813880    00000040                      : _printfi.obj (.text:__c6xabi_isnan)
+                  108138c0    00000040                      : strasg.obj (.text:__strasgi_64plus)
+                  10813900    00000040                      : args_main.obj (.text:_args_main)
+                  10813940    00000020     bslc6670.ae66e : BSLC667X_control_reg_write.o (.text:BSLC667X_GetDspCoreId)
+                  10813960    00000020                    : BSLC667X_init.o (.text:BSLC667X_GetDspCoreId)
+                  10813980    00000020                    : BSLC667X_srio_lsu_queue_intr.o (.text:BSLC667X_GetDspCoreId)
+                  108139a0    00000020                    : BSLC667X_srio_maint_xfer.o (.text:BSLC667X_GetDspCoreId)
+                  108139c0    00000020                    : BSLC667X_srio_misc_interrupt_handler.o (.text:BSLC667X_GetDspCoreId)
+                  108139e0    00000020                    : BSLC667X_srio_port_sync.o (.text:BSLC667X_GetDspCoreId)
+                  10813a00    00000020                    : BSLC667X_ddr3_hw_config.o (.text:BSLC667X_GetDspNumCores)
+                  10813a20    00000020                    : BSLC667X_init.o (.text:BSLC667X_GetDspNumCores)
+                  10813a40    00000020                    : BSLC667X_psc_init.o (.text:BSLC667X_section:dsp_psc:BSLC667X_PscInitialise)
+                  10813a60    00000020                    : BSLC667X_dsp_cntl.o (.text:CSL_BootCfgGetBootMode)
+                  10813a80    00000020                    : BSLC667X_ddr3_hw_config.o (.text:CSL_BootCfgLockKicker)
+                  10813aa0    00000020                    : BSLC667X_pllc_hw_config.o (.text:CSL_BootCfgLockKicker)
+                  10813ac0    00000020                    : BSLC667X_srio_lsu_queue_intr.o (.text:CSL_CPINTC_clearSysInterrupt)
+                  10813ae0    00000020                    : BSLC667X_srio_misc_interrupt_handler.o (.text:CSL_CPINTC_clearSysInterrupt)
+                  10813b00    00000020                    : BSLC667X_srio_init.o (.text:CSL_CPINTC_disableAllHostInterrupt)
+                  10813b20    00000020                    : BSLC667X_srio_init.o (.text:CSL_CPINTC_enableAllHostInterrupt)
+                  10813b40    00000020                    : BSLC667X_srio_init.o (.text:CSL_CPINTC_enableHostInterrupt)
+                  10813b60    00000020                    : BSLC667X_srio_init.o (.text:CSL_CPINTC_enableSysInterrupt)
+                  10813b80    00000020                    : BSLC667X_srio_init.o (.text:CSL_CPINTC_setNestingMode)
+                  10813ba0    00000020     ti.csl.ae66e : csl_pllcGetBaseAddress.oe66e (.text:CSL_PLLC_open)
+                  10813bc0    00000020     bslc6670.ae66e : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_EnableAutomaticPriorityPromotion)
+                  10813be0    00000020     ti.csl.ae66e : csl_srioGetBaseAddress.oe66e (.text:CSL_SRIO_Open)
+                  10813c00    00000020     bslc6670.ae66e : BSLC667X_srio_hw_setup_ext.o (.text:CSL_SRIO_SetCompTagCSR)
+                  10813c20    00000020     rts6600e_elf.lib : negll.obj (.text:__c6xabi_negll)
+                  10813c40    00000020                      : _lock.obj (.text:_nop)
+                  10813c60    00000020                      : printf.obj (.text:_outc)
+                  10813c80    00000020                      : printf.obj (.text:_outs)
+                  10813ca0    00000020                      : exit.obj (.text:abort)
+                  10813cc0    00000020     bslc6670.ae66e : BSLC667X_mmc_cntl.o (.text:ca_section:mmc:BSLC667X_MmcIpmiRsCallbk)
+                  10813ce0    00000020     ti.csl.intc.ae66e : csl_intcHookIsr.oe66e (.text:csl_section:intc:CSL_intcHookIsr)
+                  10813d00    00000020                       : _csl_intcNmiDummy.oe66e (.text:csl_section:intc)
+                  10813d20    00000020     rts6600e_elf.lib : copy_decompress_none.obj (.text:decompress:none:__TI_decompress_none)
+                  10813d40    00000020                      : copy_decompress_rle.obj (.text:decompress:rle24:__TI_decompress_rle24)
+
+.stack     0    10813d60    00003000     UNINITIALIZED
+                  10813d60    00000008     rts6600e_elf.lib : boot.obj (.stack)
+                  10813d68    00002ff8     --HOLE--
+
+.far       0    10816d60    00001a20     UNINITIALIZED
+                  10816d60    000018d8     BSLC667X_srio_discovery_ex.obj (.far)
+                  10818638    00000140     rts6600e_elf.lib : defs.obj (.far)
+                  10818778    00000008                      : trgdrv.obj (.far)
+
+.const     0    10818780    0000105f     
+                  10818780    00000c5c     BSLC667X_srio_discovery_ex.obj (.const:.string)
+                  108193dc    00000204     bslc6670.ae66e : BSLC667X_srio_init.o (.const)
+                  108195e0    00000101     rts6600e_elf.lib : ctype.obj (.const:.string:_ctypes_)
+                  108196e1    00000003     --HOLE-- [fill = 0]
+                  108196e4    0000005c     BSLC667X_srio_discovery_ex.obj (.const)
+                  10819740    00000027     bslc6670.ae66e : BSLC667X_spi_init.o (.const)
+                  10819767    00000023     rts6600e_elf.lib : _printfi.obj (.const:.string)
+                  1081978a    00000006     --HOLE-- [fill = 0]
+                  10819790    00000010     bslc6670.ae66e : BSLC667X_srio_init.o (.const:.string:$P$T3$8)
+                  108197a0    00000010                    : BSLC667X_srio_init.o (.const:.string:$P$T4$9)
+                  108197b0    00000010                    : BSLC667X_srio_init.o (.const:.string:$P$T5$13)
+                  108197c0    00000010                    : BSLC667X_srio_init.o (.const:.string:$P$T6$14)
+                  108197d0    0000000f                    : BSLC667X_pllc_init.o (.const)
+
+.sysmem    0    108197e0    00001000     UNINITIALIZED
+                  108197e0    00000008     rts6600e_elf.lib : memory.obj (.sysmem)
+                  108197e8    00000ff8     --HOLE--
+
+.bss       0    1081a7e0    00000638     
+                  1081a7e0    000004a4     bslc6670.ae66e : BSLC667X_intc_init.o (.bss:BSLC667X_section:dsp_intc) [fill = 0]
+                  1081ac84    00000004     --HOLE--
+                  1081ac88    00000081                    : BSLC667X_mmc_cntl_poll_recv.o (.bss:BSLC667X_section:mmc) [fill = 0]
+                  1081ad09    00000003     --HOLE--
+                  1081ad0c    00000054                    : BSLC667X_init.o (.bss:BSLC667X_section:common) [fill = 0]
+                  1081ad60    00000054                    : BSLC667X_srio_init.o (.bss:BSLC667X_section:dsp_srio) [fill = 0]
+                  1081adb4    0000004c     ti.csl.intc.ae66e : _csl_intcResource.oe66e (.bss:csl_section:intc:uninit) [fill = 0]
+                  1081ae00    00000008     bslc6670.ae66e : BSLC667X_mmc_init.o (.bss:BSLC667X_section:mmc) [fill = 0]
+                  1081ae08    00000008     BSLC667X_srio_discovery_ex.obj (.bss) [fill = 0]
+                  1081ae10    00000008     ti.csl.intc.ae66e : _csl_intcResource.oe66e (.bss:csl_section:intc:init)
+
+.fardata   0    1081ae18    000005a8     
+                  1081ae18    000001e0     rts6600e_elf.lib : defs.obj (.fardata:_ftable)
+                  1081aff8    00000170     bslc6670.ae66e : BSLC667X_srio_port_sync.o (.fardata)
+                  1081b168    000000a0     rts6600e_elf.lib : lowlev.obj (.fardata:_stream)
+                  1081b208    00000078                      : lowlev.obj (.fardata:_device)
+                  1081b280    00000024     bslc6670.ae66e : BSLC667X_ddr3_hw_config.o (.fardata:ddr3GatelvlInit1066$3)
+                  1081b2a4    00000004     rts6600e_elf.lib : defs.obj (.fardata)
+                  1081b2a8    00000024     bslc6670.ae66e : BSLC667X_ddr3_hw_config.o (.fardata:ddr3GatelvlInit1333$14)
+                  1081b2cc    00000004     --HOLE--
+                  1081b2d0    00000024                    : BSLC667X_ddr3_hw_config.o (.fardata:ddr3GatelvlInit1600$25)
+                  1081b2f4    00000004     --HOLE--
+                  1081b2f8    00000024                    : BSLC667X_ddr3_hw_config.o (.fardata:ddr3WrlvlInit1066$2)
+                  1081b31c    00000004     --HOLE--
+                  1081b320    00000024                    : BSLC667X_ddr3_hw_config.o (.fardata:ddr3WrlvlInit1333$13)
+                  1081b344    00000004     --HOLE--
+                  1081b348    00000024                    : BSLC667X_ddr3_hw_config.o (.fardata:ddr3WrlvlInit1600$24)
+                  1081b36c    00000004     --HOLE--
+                  1081b370    00000010                    : BSLC667X_ddr3_hw_config.o (.fardata:ddr3LvlSlaveRatio1066$4)
+                  1081b380    00000010                    : BSLC667X_ddr3_hw_config.o (.fardata:ddr3LvlSlaveRatio1333$15)
+                  1081b390    00000010                    : BSLC667X_ddr3_hw_config.o (.fardata:ddr3LvlSlaveRatio1600$26)
+                  1081b3a0    0000000c     rts6600e_elf.lib : exit.obj (.fardata)
+                  1081b3ac    0000000c                      : memory.obj (.fardata)
+                  1081b3b8    00000008                      : _lock.obj (.fardata)
+
+.csl_vect 
+*          0    1081b400    00000200     
+                  1081b400    00000200     ti.csl.intc.ae66e : _csl_intcIsrDispatch.oe66e (.csl_vect)
+
+.cio       0    1081b600    00000120     UNINITIALIZED
+                  1081b600    00000120     rts6600e_elf.lib : trgmsg.obj (.cio)
+
+.switch    0    1081b720    000000f0     
+                  1081b720    00000070     ti.csl.ae66e : csl_chip.oe66e (.switch:CSL_chipReadReg)
+                  1081b790    00000024     bslc6670.ae66e : BSLC667X_control_utils.o (.switch:BSLC667X_ControlUartSrcCntlConAtoB)
+                  1081b7b4    0000001c     ti.csl.intc.ae66e : csl_intcHwControl.oe66e (.switch:CSL_intcHwControl)
+                  1081b7d0    00000010     bslc6670.ae66e : BSLC667X_ddr3_init.o (.switch:BSLC667X_Ddr3Initialise)
+                  1081b7e0    00000010                    : BSLC667X_srio_misc_interrupt_handler.o (.switch:BSLC667X_SrioDoorBellIntrHandler)
+                  1081b7f0    00000010                    : BSLC667X_srio_misc_interrupt_handler.o (.switch:BSLC667X_SrioInterruptHandler)
+                  1081b800    00000010     ti.csl.intc.ae66e : csl_intcOpen.oe66e (.switch:CSL_intcOpen)
+
+.neardata 
+*          0    1081b810    0000009c     
+                  1081b810    00000060     bslc6670.ae66e : BSLC667X_ddr3_hw_config.o (.neardata)
+                  1081b870    0000001c                    : BSLC667X_srio_init.o (.neardata)
+                  1081b88c    00000005     BSLC667X_srio_discovery_ex.obj (.neardata)
+                  1081b891    00000003     --HOLE--
+                  1081b894    00000004     bslc6670.ae66e : BSLC667X_control_init.o (.neardata)
+                  1081b898    00000004                    : BSLC667X_ddr3_init.o (.neardata)
+                  1081b89c    00000004                    : BSLC667X_init.o (.neardata)
+                  1081b8a0    00000004                    : BSLC667X_intc_init.o (.neardata)
+                  1081b8a4    00000004                    : BSLC667X_mmc_init.o (.neardata)
+                  1081b8a8    00000004                    : BSLC667X_spi_init.o (.neardata)
+
+.cinit     0    1081b8ac    000002f4     
+                  1081b8ac    00000242     (.cinit..fardata.load) [load image, compression = rle]
+                  1081baee    00000002     --HOLE-- [fill = 0]
+                  1081baf0    0000006f     (.cinit..neardata.load) [load image, compression = rle]
+                  1081bb5f    00000001     --HOLE-- [fill = 0]
+                  1081bb60    0000000c     (__TI_handler_table)
+                  1081bb6c    0000000b     (.cinit..bss.load) [load image, compression = rle]
+                  1081bb77    00000001     --HOLE-- [fill = 0]
+                  1081bb78    00000008     (.cinit..far.load) [load image, compression = zero_init]
+                  1081bb80    00000020     (__TI_cinit_table)
+
+
+LINKER GENERATED COPY TABLES
+
+__TI_cinit_table @ 1081bb80 records: 4, size/record: 8, table size: 32
+	.fardata: load addr=1081b8ac, load size=00000242 bytes, run addr=1081ae18, run size=000005a8 bytes, compression=rle
+	.neardata: load addr=1081baf0, load size=0000006f bytes, run addr=1081b810, run size=0000009c bytes, compression=rle
+	.bss: load addr=1081bb6c, load size=0000000b bytes, run addr=1081a7e0, run size=00000638 bytes, compression=rle
+	.far: load addr=1081bb78, load size=00000008 bytes, run addr=10816d60, run size=00001a20 bytes, compression=zero_init
+
+
+LINKER GENERATED HANDLER TABLE
+
+__TI_handler_table @ 1081bb60 records: 3, size/record: 4, table size: 12
+	index: 0, handler: __TI_decompress_rle24
+	index: 1, handler: __TI_decompress_none
+	index: 2, handler: __TI_zero_init
+
+
+GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 
+
+address    name
+--------   ----
+108130c0   BSLC667X_ControlGetBoardInfo
+10813100   BSLC667X_ControlGetControlRevision
+10813140   BSLC667X_ControlGetControlScratch
+10813180   BSLC667X_ControlInitialise
+1080b780   BSLC667X_ControlRegRead
+1080c2c0   BSLC667X_ControlRegWrite
+108131c0   BSLC667X_ControlSetControlScratch
+10810e80   BSLC667X_ControlUartEmptyFifo
+1080e100   BSLC667X_ControlUartRead
+1080e780   BSLC667X_ControlUartSrcCntlConAtoB
+1080e920   BSLC667X_ControlUartWrite
+10803200   BSLC667X_Ddr3HwSetup
+10812180   BSLC667X_Ddr3Initialise
+1080eda0   BSLC667X_DoLsuXferSync
+10813200   BSLC667X_DspGetGeoAddr
+10806cc0   BSLC667X_GetBoardConfig
+1080df60   BSLC667X_Initialise
+1080d3c0   BSLC667X_IntcInitialise
+10812700   BSLC667X_MicrosecWait
+10812300   BSLC667X_MmcFruCheckSum
+10811820   BSLC667X_MmcGetGeographicAddr
+10812760   BSLC667X_MmcInitialise
+10813cc0   BSLC667X_MmcIpmiRsCallbk
+1080fa40   BSLC667X_MmcPollReceiveResponse
+10808f60   BSLC667X_MmcProcessMmcRs
+10811000   BSLC667X_MmcSendIpmiRq
+10808740   BSLC667X_MmcSendIpmiRqAsync
+108067c0   BSLC667X_PllcHwSetup
+108106a0   BSLC667X_PllcInitialise
+1080fec0   BSLC667X_PscHwSetup
+10813a40   BSLC667X_PscInitialise
+10803a80   BSLC667X_ReadMmcFru
+10809e20   BSLC667X_RetrieveBoardInfo
+10806220   BSLC667X_SpiHwSetup
+1080ffc0   BSLC667X_SpiInitialise
+1080f060   BSLC667X_SpiTransfer
+10812200   BSLC667X_SrioCps1848MaintRd
+10812280   BSLC667X_SrioCps1848MaintWr
+1080ef00   BSLC667X_SrioCps1848PortReset
+1080b000   BSLC667X_SrioCps1848ToEndPointPortSync
+1080f800   BSLC667X_SrioDirectIORdSync
+1080f920   BSLC667X_SrioDirectIOWrSync
+1080a160   BSLC667X_SrioDoorBellIntrHandler
+10808320   BSLC667X_SrioDspToCps1848PortSync
+10804a00   BSLC667X_SrioHwConfig
+10804300   BSLC667X_SrioInitialise
+108050c0   BSLC667X_SrioIntcInitialise
+108096e0   BSLC667X_SrioInterruptHandler
+1080aaa0   BSLC667X_SrioLsuInterruptHandler
+10810f40   BSLC667X_SrioMaintRdSync
+108100c0   BSLC667X_SrioMaintWrSync
+1080e2a0   BSLC667X_SrioUpdateDefaultHwConfig
+10811780   BSLC667X_getQuadConfig
+10813ca0   C$$EXIT
+108130b8   C$$IO$$
+1081aff8   CPS1848_portmap
+108133c0   CSL_CPINTC_open
+10813ba0   CSL_PLLC_open
+10813be0   CSL_SRIO_Open
+1080f1c0   CSL_chipReadReg
+10811d20   CSL_intcClose
+1080f638   CSL_intcGlobalDisable
+1080f618   CSL_intcGlobalEnable
+1080f6ac   CSL_intcGlobalExcepClear
+1080f684   CSL_intcGlobalExcepEnable
+1080f698   CSL_intcGlobalExtExcepEnable
+1080f670   CSL_intcGlobalNmiEnable
+1080f658   CSL_intcGlobalRestore
+10813ce0   CSL_intcHookIsr
+10809320   CSL_intcHwControl
+1080f440   CSL_intcInit
+1080f5d0   CSL_intcInterruptClear
+1080f5b0   CSL_intcInterruptDisable
+1080f590   CSL_intcInterruptEnable
+1080f5ec   CSL_intcInterruptRestore
+1080f5e0   CSL_intcInterruptSet
+1080c700   CSL_intcOpen
+1080f604   CSL_intcQueryInterruptStatus
+108184b8   Endpoints
+10811960   HOSTclose
+108101c0   HOSTlseek
+10810780   HOSTopen
+10811240   HOSTread
+1080e440   HOSTrename
+10811300   HOSTunlink
+108113c0   HOSTwrite
+1080258c   SrioClearLut
+10802394   SrioClearLutCps10q
+10802238   SrioClearLutTsi578
+10802a18   SrioComponentTagTest
+10801c94   SrioDiscoverFullRouting
+108007d8   SrioDiscoverSwitchRouting
+10802d84   SrioPortSQM
+10802ba8   SrioPortSQMInit
+108030e8   SrioPortSQMLog
+10802654   SrioReset
+10801f8c   SrioSetRoute
+10802704   SrioSwitchRouteConfigure
+10817008   Switches
+1081ae10   _CSL_intcAllocMask
+1081adb4   _CSL_intcCpuIntrTable
+1080dbc0   _CSL_intcDispatcher
+1080c920   _CSL_intcEvent0Dispatcher
+1080cb40   _CSL_intcEvent1Dispatcher
+1080cd60   _CSL_intcEvent2Dispatcher
+1080cf80   _CSL_intcEvent3Dispatcher
+1081adfc   _CSL_intcEventHandlerRecord
+1081ae14   _CSL_intcEventOffsetMap
+1080f580   _CSL_intcIvpSet
+10813d00   _CSL_intcNmiDummy
+1081adf8   _CSL_intcNumEvents
+1081b400   _CSL_intcVectorTable
+1081b600   __CIOBUF_
+1081bb80   __TI_CINIT_Base
+1081bba0   __TI_CINIT_Limit
+1081bb60   __TI_Handler_Table_Base
+1081bb6c   __TI_Handler_Table_Limit
+UNDEFED    __TI_INITARRAY_Base
+UNDEFED    __TI_INITARRAY_Limit
+10816d60   __TI_STACK_END
+00003000   __TI_STACK_SIZE
+1081a7e0   __TI_STATIC_BASE
+00001000   __TI_SYSMEM_SIZE
+UNDEFED    __TI_TLS_INIT_Base
+UNDEFED    __TI_TLS_INIT_Limit
+00000001   __TI_args_main
+10812e80   __TI_cpp_init
+10813d20   __TI_decompress_none
+10813d40   __TI_decompress_rle24
+1081b3a8   __TI_enable_exit_profile_output
+ffffffff   __TI_pprof_out_hndl
+ffffffff   __TI_prof_data_size
+ffffffff   __TI_prof_data_start
+108116c0   __TI_tls_init
+10810b00   __TI_zero_init
+ffffffff   __binit__
+108056a0   __c6xabi_divd
+10811480   __c6xabi_divu
+1080e5e0   __c6xabi_divul
+1080bc00   __c6xabi_divull
+10812ee0   __c6xabi_frcmpyd_div
+10813840   __c6xabi_isinf
+10812500   __c6xabi_llshl
+10812f40   __c6xabi_llshru
+10813c20   __c6xabi_negll
+108138c0   __c6xabi_strasgi_64plus
+ffffffff   __c_args__
+10811480   __divu
+108138c0   __strasgi_64plus
+10813900   _args_main
+108102c0   _auto_init_elf
+10812580   _c_int00
+10811a00   _cleanup
+1081b3a0   _cleanup_ptr
+1080fb60   _closefile
+108195e0   _ctypes_
+10811540   _doflush
+1081b3a4   _dtors_ptr
+1081b2a4   _ft_end
+1081ae18   _ftable
+1081b3b8   _lock
+10811be0   _minit
+10813c40   _nop
+10807a60   _printfi
+10813d60   _stack
+10812fa0   _subcull
+108197e0   _sys_memory
+10818638   _tmpnams
+1081b3bc   _unlock
+108103c0   _wrt_ok
+10813ca0   abort
+10810940   atoi
+ffffffff   binit
+10810a20   close
+108104c0   copy_in
+10811600   exit
+1080d1a0   fputc
+10809a80   fputs
+1080b500   free
+1080fda0   fseek
+1081b890   gSrioIsConfigured
+1081ae00   g_BSLC667X_MmcbellAppCallback
+1081ad64   g_BSLC667X_SrioDirectIOAppCallback
+1081ad6c   g_BSLC667X_SrioDoorbellAppCallback
+1081ad84   g_BSLC667X_SrioErrRstAppCallback
+1081adb0   g_BSLC667X_SrioMode
+1081ad74   g_BSLC667X_SrioRxCppiAppCallback
+1081ad7c   g_BSLC667X_SrioTxCppiAppCallback
+1081ad0c   g_BoardInfo
+1081a7e0   g_EvtObj
+1081abe4   g_IntcContext
+1081ad90   g_SrioIntStatus
+1081ac80   g_ucBSLC667X_IntcCombinerResource
+1081ac88   g_ucMmcNmeaRsBuffer
+1081ad08   g_ucMmcRsBufIdx
+1081ac7c   g_uiBSLC667X_IntcResource
+1081ad60   g_uiBSLC667X_SrioResource
+1081abe0   g_uiGlobalEnableState
+1081ae0c   hSrio
+108029ac   isDiscovered
+10811e60   lseek
+10810be0   ltoa
+10800210   main
+1080ec20   malloc
+10813000   memccpy
+10811f00   memcpy
+10810cc0   memset
+10810da0   printf
+10812600   readmsg
+10812680   remove
+10802920   setDiscoveredBit
+1080d9c0   setvbuf
+108184a8   srioEndpoint
+10816d60   srioSQM
+10816d70   srioSwitch
+1081ae08   status
+10812680   unlink
+108120e0   write
+10813060   writemsg
+
+
+GLOBAL SYMBOLS: SORTED BY Symbol Address 
+
+address    name
+--------   ----
+00000001   __TI_args_main
+00001000   __TI_SYSMEM_SIZE
+00003000   __TI_STACK_SIZE
+10800210   main
+108007d8   SrioDiscoverSwitchRouting
+10801c94   SrioDiscoverFullRouting
+10801f8c   SrioSetRoute
+10802238   SrioClearLutTsi578
+10802394   SrioClearLutCps10q
+1080258c   SrioClearLut
+10802654   SrioReset
+10802704   SrioSwitchRouteConfigure
+10802920   setDiscoveredBit
+108029ac   isDiscovered
+10802a18   SrioComponentTagTest
+10802ba8   SrioPortSQMInit
+10802d84   SrioPortSQM
+108030e8   SrioPortSQMLog
+10803200   BSLC667X_Ddr3HwSetup
+10803a80   BSLC667X_ReadMmcFru
+10804300   BSLC667X_SrioInitialise
+10804a00   BSLC667X_SrioHwConfig
+108050c0   BSLC667X_SrioIntcInitialise
+108056a0   __c6xabi_divd
+10806220   BSLC667X_SpiHwSetup
+108067c0   BSLC667X_PllcHwSetup
+10806cc0   BSLC667X_GetBoardConfig
+10807a60   _printfi
+10808320   BSLC667X_SrioDspToCps1848PortSync
+10808740   BSLC667X_MmcSendIpmiRqAsync
+10808f60   BSLC667X_MmcProcessMmcRs
+10809320   CSL_intcHwControl
+108096e0   BSLC667X_SrioInterruptHandler
+10809a80   fputs
+10809e20   BSLC667X_RetrieveBoardInfo
+1080a160   BSLC667X_SrioDoorBellIntrHandler
+1080aaa0   BSLC667X_SrioLsuInterruptHandler
+1080b000   BSLC667X_SrioCps1848ToEndPointPortSync
+1080b500   free
+1080b780   BSLC667X_ControlRegRead
+1080bc00   __c6xabi_divull
+1080c2c0   BSLC667X_ControlRegWrite
+1080c700   CSL_intcOpen
+1080c920   _CSL_intcEvent0Dispatcher
+1080cb40   _CSL_intcEvent1Dispatcher
+1080cd60   _CSL_intcEvent2Dispatcher
+1080cf80   _CSL_intcEvent3Dispatcher
+1080d1a0   fputc
+1080d3c0   BSLC667X_IntcInitialise
+1080d9c0   setvbuf
+1080dbc0   _CSL_intcDispatcher
+1080df60   BSLC667X_Initialise
+1080e100   BSLC667X_ControlUartRead
+1080e2a0   BSLC667X_SrioUpdateDefaultHwConfig
+1080e440   HOSTrename
+1080e5e0   __c6xabi_divul
+1080e780   BSLC667X_ControlUartSrcCntlConAtoB
+1080e920   BSLC667X_ControlUartWrite
+1080ec20   malloc
+1080eda0   BSLC667X_DoLsuXferSync
+1080ef00   BSLC667X_SrioCps1848PortReset
+1080f060   BSLC667X_SpiTransfer
+1080f1c0   CSL_chipReadReg
+1080f440   CSL_intcInit
+1080f580   _CSL_intcIvpSet
+1080f590   CSL_intcInterruptEnable
+1080f5b0   CSL_intcInterruptDisable
+1080f5d0   CSL_intcInterruptClear
+1080f5e0   CSL_intcInterruptSet
+1080f5ec   CSL_intcInterruptRestore
+1080f604   CSL_intcQueryInterruptStatus
+1080f618   CSL_intcGlobalEnable
+1080f638   CSL_intcGlobalDisable
+1080f658   CSL_intcGlobalRestore
+1080f670   CSL_intcGlobalNmiEnable
+1080f684   CSL_intcGlobalExcepEnable
+1080f698   CSL_intcGlobalExtExcepEnable
+1080f6ac   CSL_intcGlobalExcepClear
+1080f800   BSLC667X_SrioDirectIORdSync
+1080f920   BSLC667X_SrioDirectIOWrSync
+1080fa40   BSLC667X_MmcPollReceiveResponse
+1080fb60   _closefile
+1080fda0   fseek
+1080fec0   BSLC667X_PscHwSetup
+1080ffc0   BSLC667X_SpiInitialise
+108100c0   BSLC667X_SrioMaintWrSync
+108101c0   HOSTlseek
+108102c0   _auto_init_elf
+108103c0   _wrt_ok
+108104c0   copy_in
+108106a0   BSLC667X_PllcInitialise
+10810780   HOSTopen
+10810940   atoi
+10810a20   close
+10810b00   __TI_zero_init
+10810be0   ltoa
+10810cc0   memset
+10810da0   printf
+10810e80   BSLC667X_ControlUartEmptyFifo
+10810f40   BSLC667X_SrioMaintRdSync
+10811000   BSLC667X_MmcSendIpmiRq
+10811240   HOSTread
+10811300   HOSTunlink
+108113c0   HOSTwrite
+10811480   __c6xabi_divu
+10811480   __divu
+10811540   _doflush
+10811600   exit
+108116c0   __TI_tls_init
+10811780   BSLC667X_getQuadConfig
+10811820   BSLC667X_MmcGetGeographicAddr
+10811960   HOSTclose
+10811a00   _cleanup
+10811be0   _minit
+10811d20   CSL_intcClose
+10811e60   lseek
+10811f00   memcpy
+108120e0   write
+10812180   BSLC667X_Ddr3Initialise
+10812200   BSLC667X_SrioCps1848MaintRd
+10812280   BSLC667X_SrioCps1848MaintWr
+10812300   BSLC667X_MmcFruCheckSum
+10812500   __c6xabi_llshl
+10812580   _c_int00
+10812600   readmsg
+10812680   remove
+10812680   unlink
+10812700   BSLC667X_MicrosecWait
+10812760   BSLC667X_MmcInitialise
+10812e80   __TI_cpp_init
+10812ee0   __c6xabi_frcmpyd_div
+10812f40   __c6xabi_llshru
+10812fa0   _subcull
+10813000   memccpy
+10813060   writemsg
+108130b8   C$$IO$$
+108130c0   BSLC667X_ControlGetBoardInfo
+10813100   BSLC667X_ControlGetControlRevision
+10813140   BSLC667X_ControlGetControlScratch
+10813180   BSLC667X_ControlInitialise
+108131c0   BSLC667X_ControlSetControlScratch
+10813200   BSLC667X_DspGetGeoAddr
+108133c0   CSL_CPINTC_open
+10813840   __c6xabi_isinf
+108138c0   __c6xabi_strasgi_64plus
+108138c0   __strasgi_64plus
+10813900   _args_main
+10813a40   BSLC667X_PscInitialise
+10813ba0   CSL_PLLC_open
+10813be0   CSL_SRIO_Open
+10813c20   __c6xabi_negll
+10813c40   _nop
+10813ca0   C$$EXIT
+10813ca0   abort
+10813cc0   BSLC667X_MmcIpmiRsCallbk
+10813ce0   CSL_intcHookIsr
+10813d00   _CSL_intcNmiDummy
+10813d20   __TI_decompress_none
+10813d40   __TI_decompress_rle24
+10813d60   _stack
+10816d60   __TI_STACK_END
+10816d60   srioSQM
+10816d70   srioSwitch
+10817008   Switches
+108184a8   srioEndpoint
+108184b8   Endpoints
+10818638   _tmpnams
+108195e0   _ctypes_
+108197e0   _sys_memory
+1081a7e0   __TI_STATIC_BASE
+1081a7e0   g_EvtObj
+1081abe0   g_uiGlobalEnableState
+1081abe4   g_IntcContext
+1081ac7c   g_uiBSLC667X_IntcResource
+1081ac80   g_ucBSLC667X_IntcCombinerResource
+1081ac88   g_ucMmcNmeaRsBuffer
+1081ad08   g_ucMmcRsBufIdx
+1081ad0c   g_BoardInfo
+1081ad60   g_uiBSLC667X_SrioResource
+1081ad64   g_BSLC667X_SrioDirectIOAppCallback
+1081ad6c   g_BSLC667X_SrioDoorbellAppCallback
+1081ad74   g_BSLC667X_SrioRxCppiAppCallback
+1081ad7c   g_BSLC667X_SrioTxCppiAppCallback
+1081ad84   g_BSLC667X_SrioErrRstAppCallback
+1081ad90   g_SrioIntStatus
+1081adb0   g_BSLC667X_SrioMode
+1081adb4   _CSL_intcCpuIntrTable
+1081adf8   _CSL_intcNumEvents
+1081adfc   _CSL_intcEventHandlerRecord
+1081ae00   g_BSLC667X_MmcbellAppCallback
+1081ae08   status
+1081ae0c   hSrio
+1081ae10   _CSL_intcAllocMask
+1081ae14   _CSL_intcEventOffsetMap
+1081ae18   _ftable
+1081aff8   CPS1848_portmap
+1081b2a4   _ft_end
+1081b3a0   _cleanup_ptr
+1081b3a4   _dtors_ptr
+1081b3a8   __TI_enable_exit_profile_output
+1081b3b8   _lock
+1081b3bc   _unlock
+1081b400   _CSL_intcVectorTable
+1081b600   __CIOBUF_
+1081b890   gSrioIsConfigured
+1081bb60   __TI_Handler_Table_Base
+1081bb6c   __TI_Handler_Table_Limit
+1081bb80   __TI_CINIT_Base
+1081bba0   __TI_CINIT_Limit
+ffffffff   __TI_pprof_out_hndl
+ffffffff   __TI_prof_data_size
+ffffffff   __TI_prof_data_start
+ffffffff   __binit__
+ffffffff   __c_args__
+ffffffff   binit
+UNDEFED    __TI_INITARRAY_Base
+UNDEFED    __TI_INITARRAY_Limit
+UNDEFED    __TI_TLS_INIT_Base
+UNDEFED    __TI_TLS_INIT_Limit
+
+[219 symbols]

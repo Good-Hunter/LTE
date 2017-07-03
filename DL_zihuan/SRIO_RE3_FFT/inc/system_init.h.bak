@@ -1,0 +1,144 @@
+/***********************************************/
+/*system_init                                  */
+/*功能：系统初始化头文件                       */
+/***********************************************/
+#include <string.h>
+
+/* BCP application include */
+#include "BCP_common.h"
+#include "bcp_lte.h"
+#include "pl_comm.h"
+
+/* FFTC application include */
+#include "fftc_cfg_funct.h"
+
+/* CSL INTC include */
+#include "csl_intc.h"
+
+/* CSL Cache Include */
+#include "csl_cache.h"
+#include "csl_cacheAux.h"
+#include "cpsw_singlecore.h"
+#include "SRIO_PktDMA_Init.h"
+#include "tcp3dDrv.h"
+
+#define NULL                    0
+#define FFT_SIZE               2048
+#define IDFT_MODE               0
+#define ZERO_PAD_VALUE          0x034c0000 /*844*/
+#define VARIABLE_SHIFT_INPUT    0x02d40000 /*724*/
+#define DFT_MODE                1
+#define MAX_DFT_SIZE_LIST_LENGTH  26
+
+//#define SIMULATOR
+#define SINGLE_USER
+//#define TWO_USER
+//#define TEN_USER
+
+extern CSL_CgemRegs * CGEM_regs;
+extern Cppi_Handle     glbBCPCdmaHdl;
+extern Bcp_LldObj      glbBcpLldObj;
+extern int    glbCoreId;
+
+
+extern unsigned char glbDescBuf[BCP_MAX_NUM_FD*2][BCP_DESC_SIZE]; //each memory region should have at least 32 descriptors
+extern unsigned int srcBuf[BCP_MAX_NUM_FD][INBUF_SIZE];
+extern unsigned int dstBuf[BCP_MAX_NUM_FD][OUTBUF_SIZE];
+
+extern Bcp_LldObj    * pBcpLldObj;
+
+extern unsigned int fftcInstNum;
+extern char gxx_crc_check;
+extern unsigned int gRxBuffer[NUM_RX_DESC][CPPI_FFTC_BUF_LEN];
+extern unsigned int fft_output_data[NUM_MAX_ANTENNA][2 * N_SYM_PER_SLOT * N_DL_RB * N_SC_PER_RB];
+extern unsigned char gTxBuffer[NUM_TX_DESC][CPPI_FFTC_BUF_LEN];
+//extern unsigned int fftc_input_data[NUM_MAX_ANTENNA * (SUBFRAME_LEN >> 1)];/*每次FFT最多支持6个符号*/
+extern unsigned int DFT_sz_list[50];
+extern unsigned int gxx_symbol0_flag;
+extern unsigned int gxx_symbol6_flag;
+extern unsigned int gxx_symbol11_flag;
+extern unsigned int gxx_symbol13_flag;
+extern CELL_PARA vxx_cell_para;
+extern USER_PARA vxx_user_para[1];
+extern CONFIG_PARA vxx_config_para_init;
+extern FFT_LAY_BLOCK vxx_fft_lay_buffer;
+extern CHE_CRS_BLOCK vxx_che_crs_buffer;
+extern SCRAM_TB_BLOCK vxx_desramble_tb_buffer;
+extern DEMODU_RM_BLOCK vxx_demodu_rm_buffer;
+extern unsigned int fft_data[NUM_MAX_ANTENNA][2 * N_SYM_PER_SLOT * N_DL_RB * N_SC_PER_RB];/*FFT后数据*/
+extern signed int che_interp_data[NUM_ANTENNA_PORT_2][NUM_MAX_ANTENNA][N_SYM_PER_SLOT * 2][N_SC_PER_RB * N_DL_RB];/*插值后的信道估计*/
+extern signed char demodulation_data[4][NUM_CODEWORD_2][N_SC_PER_RB * N_DL_RB * 4 * QAM64];/*解调*/
+extern signed char pdsch_pseudo[NUM_CODEWORD_2][PDSCH_PSEUDO_LENGTH];/*解扰生成的扰码*/
+extern unsigned int tb_buffer[NUM_CODEWORD_2 * ((MAX_TB_BLOCK_SIZE + ETHERNET_PACK_LEN - 1)/32)];/*考虑TB块加上CRC长度*/
+extern signed int prbdemapping_crs_data[NUM_ANTENNA_PORT_2][NUM_MAX_ANTENNA][CRS_SYMB_NUM_NORMCP_1MS][CRS_SUBCARR_NUM_20M];/*导频解资源映射*/
+extern unsigned int crs_che_data[NUM_ANTENNA_PORT_2][NUM_MAX_ANTENNA][CRS_SYMB_NUM_NORMCP_1MS][CRS_SUBCARR_NUM_20M];/*插值前的信道估计*/
+extern PBCH_FREQ_DATA_LAY_BLOCK vxx_pbch_freq_lay_data;
+extern PBCH_CHE_LLR_BLOCK vxx_pbch_che_llr_data;
+extern PBCH_PRECODING_DEMOD_BLOCK vxx_precoding_demod_data;
+extern char pdcch_data_after_descram[800 * 8];
+extern unsigned int g_phich_freq_data[50 * 12];
+extern DL_phich_para_struct vxx_phich_para;
+extern unsigned char rsgen_output[20][3][220];
+extern unsigned char vxx_user_num;
+/** TCP3D SW0 nominal values */
+extern signed int tcp3d_sw0_Tab[];
+/** Used for getting the sw0LenSel index values */
+extern signed int TAB[];
+/** Table used for division optimization logic */
+extern signed int shiftValTab[];
+/** Table used for division optimization logic */
+extern unsigned int mulValTab[];
+/** Table used for checking bounds */
+extern unsigned int frameLenTab[2][2];
+extern unsigned char TxBuff[ETHERNET_PACK_LEN + ETHERNET_PACK_HEAD_LEN];
+extern unsigned char pktMatch[ETHERNET_PACK_HEAD_LEN];
+
+extern unsigned int llr0_link_index_abCnt;
+extern unsigned int llr0_link_index_bIdx;
+extern unsigned int llr0_link_index_cIdx;
+extern unsigned int llr1_link_index_abCnt;
+extern unsigned int llr1_link_index_bIdx;
+extern unsigned int llr1_link_index_cIdx;
+extern unsigned int hd0_link_index_abCnt;
+extern unsigned int hd1_link_index_abCnt;
+
+extern DL_resource_mapping_struct g_dl_resource_mapping;
+extern DL_cch_data_struct g_cch_data_buffer;
+extern signed short  pbch_pcfich_pdcch_llr_data[3600];
+extern char g_N_group_phich[MAX_SUBFN_NUM];
+extern union dci_data_format g_dci_rel_data_buffer[50];
+extern signed short total_cbs;
+extern signed char vxx_max_shift_factor;
+extern signed char vxx_shift_factor[NUM_MAX_ANTENNA][N_SYM_PER_SLOT * 2];
+extern unsigned char pdsch_pseudo_ddr[10][NUM_CODEWORD_2][PDSCH_PSEUDO_LENGTH];//按子帧存储
+extern void para_init(CONFIG_PARA* config_para_ptr);
+extern void cell_para_update(CELL_PARA* cell_para_ptr,
+                      unsigned char * restrict rsgen_output_buffer);
+
+extern unsigned int user_para_update(USER_PARA* user_para_ptr,
+        unsigned char slot_idx,
+        CELL_PARA* cell_para_ptr,
+        DL_phich_para_struct *phich_para_ptr);
+
+extern void system_init();
+extern signed int enable_bcp (void);
+extern signed int enable_fftc (void);
+extern void tcp3d_lte_pdsch(USER_PARA *user_para_ptr,
+        signed char* tc_testvector,
+        unsigned char* tb_buffer,
+        unsigned int  cblen0,
+        unsigned int  cblen1,
+        unsigned char tcp3d_llr_index,
+        unsigned char tcp3d_flag,
+        unsigned int  used_cb_len);
+extern unsigned int bcp_lte_pdsch_receive_part1(USER_PARA *user_para_ptr,
+        CELL_PARA *cell_para_ptr,
+        unsigned int slot_idx);
+extern unsigned int bcp_lte_pdsch_receive_part2(USER_PARA *user_para_ptr,
+        CELL_PARA *cell_para_ptr
+        );
+extern void lte_dl_receiver (unsigned char slot_idx);
+extern void f_dl_database_updata(CELL_PARA* cell_para_ptr);
+extern void f_dl_phich_mapping(char subfn_index,
+                      char N_group,
+                      unsigned short *phich_mapping_ptr);

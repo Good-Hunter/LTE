@@ -1,0 +1,69 @@
+
+ 
+#ifndef _CSL_CPINTC_H_
+#define _CSL_CPINTC_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "soc.h"
+#include "csl.h"
+#include "cslr_cpintc.h"
+
+/**
+@defgroup CSL_CPINTC_SYMBOL  CPINTC Symbols Defined
+@ingroup CSL_CPINTC_API
+*/
+/**
+@defgroup CSL_CPINTC_DATASTRUCT  CPINTC Data Structures
+@ingroup CSL_CPINTC_API
+*/
+/**
+@defgroup CSL_CPINTC_FUNCTION  CPINTC Functions
+@ingroup CSL_CPINTC_API
+*/
+
+/** @addtogroup CSL_CPINTC_DATASTRUCT
+ @{ */
+ 
+/** @brief Register Overlay Memory map for the CPINTC0 Registers. */
+typedef volatile CSL_CPINTCRegs*  CSL_CPINTC_RegsOvly;
+
+/** @brief This is the handle to the CPINTC instance */
+typedef Uint32   CSL_CPINTC_Handle;
+
+/** @brief This defines the system interrupt */
+typedef Uint32   CSL_CPINTCSystemInterrupt;
+
+/** @brief This defines the host interrupt */
+typedef Uint32   CSL_CPINTCHostInterrupt;
+
+/** @brief This defines the channels */
+typedef Uint32   CSL_CPINTCChannel;
+
+/** @brief This defines the nesting level */
+typedef unsigned short   CSL_CPINTCNestingLevel;
+
+/** @brief Enumeration defines the type of Nesting Modes which is supported by the CPINTC */
+typedef enum CSL_CPINTCNestingMode
+{
+    CPINTC_NO_NESTING            = 0x0,
+    CPINTC_AUTOMATIC_GLB_NESTING = 0x1,
+    CPINTC_AUTOMATIC_IND_NESTING = 0x2,
+    CPINTC_MANUAL_NESTING        = 0x3
+}CSL_CPINTCNestingMode;
+
+/**
+@}
+*/
+
+/* Device specific API which opens the CPINTC instance and returns a handle used in all subsequent calls */
+extern CSL_CPINTC_Handle CSL_CPINTC_open (signed int instNum);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _CSL_CPINTC_H_ */
+

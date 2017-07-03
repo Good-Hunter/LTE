@@ -1,0 +1,97 @@
+
+**** Build of configuration Debug for project LTE_Timer_version4 ****
+
+"D:\\ti\\ccsv5\\utils\\bin\\gmake" -k all 
+'Building file: ../src/para_update.c'
+'Invoking: C6000 Compiler'
+"D:/ti/C6000 Code Generation Tools 7.4.2/bin/cl6x" -mv6600 --big_endian --abi=eabi -Ooff -g --include_path="D:/work1/DL_zihuan/LTE_Timer_version4" --include_path="D:/ti/pdk_C6670_1_1_2_5/packages" --include_path="D:/work1/DL_zihuan/LTE_Timer_version4/common" --include_path="D:/work1/DL_zihuan/LTE_Timer_version4/inc" --include_path="D:/work1/DL_zihuan/LTE_Timer_version4/src" --include_path="D:/ti/C6000 Code Generation Tools 7.4.2/include" --include_path="D:/CommAgility_Amc2c66xx_V0_4_9/dsp/dsplibs/inc" --display_error_number --diag_warning=225 --diag_wrap=off --preproc_with_compile --preproc_dependency="src/para_update.pp" --obj_directory="src"  "../src/para_update.c"
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 12: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 23: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 30: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 49: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 59: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 64: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 83: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 89: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 99: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 108: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 118: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 124: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 130: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 140: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 150: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 155: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 166: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 176: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 185: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 191: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 200: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 209: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 214: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 219: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 233: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 245: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 252: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 262: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 267: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 278: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 287: warning #1173-D: attribute "packed" ignored
+"D:/work1/DL_zihuan/LTE_Timer_version4/inc/PHY_PHYADP_interfaceV3.h", line 301: warning #1173-D: attribute "packed" ignored
+"../src/para_update.c", line 264: warning #179-D: variable "j" was declared but never referenced
+"../src/para_update.c", line 676: warning #225-D: function declared implicitly
+"../src/para_update.c", line 600: warning #552-D: parameter "PSCH_data_buffer" was set but never used
+"../src/para_update.c", line 601: warning #552-D: parameter "SSCH_data_subframe0_buffer" was set but never used
+"../src/para_update.c", line 602: warning #552-D: parameter "SSCH_data_subframe5_buffer" was set but never used
+"../src/para_update.c", line 606: warning #179-D: variable "pTestCfgFile" was declared but never referenced
+"../src/para_update.c", line 607: warning #179-D: variable "i" was declared but never referenced
+"../src/para_update.c", line 692: warning #179-D: variable "pTestCfgFile" was declared but never referenced
+"../src/para_update.c", line 693: warning #179-D: variable "rs_symbol" was declared but never referenced
+"../src/para_update.c", line 694: warning #179-D: variable "pbch_ssyc_symbol" was declared but never referenced
+"../src/para_update.c", line 696: warning #179-D: variable "pbch_symbol7" was declared but never referenced
+"../src/para_update.c", line 697: warning #179-D: variable "bitmap_length" was declared but never referenced
+"../src/para_update.c", line 1013: warning #169-D: argument of type "signed char *" is incompatible with parameter of type "char *"
+"../src/para_update.c", line 1015: warning #169-D: argument of type "signed char *" is incompatible with parameter of type "const char *"
+"../src/para_update.c", line 1018: warning #169-D: argument of type "signed char *" is incompatible with parameter of type "const char *"
+"../src/para_update.c", line 1025: warning #169-D: argument of type "signed char *" is incompatible with parameter of type "const char *"
+"../src/para_update.c", line 1033: warning #169-D: argument of type "signed char *" is incompatible with parameter of type "const char *"
+"../src/para_update.c", line 1041: warning #169-D: argument of type "signed char *" is incompatible with parameter of type "const char *"
+"../src/para_update.c", line 1049: warning #169-D: argument of type "signed char *" is incompatible with parameter of type "const char *"
+"../src/para_update.c", line 1056: warning #169-D: argument of type "signed char *" is incompatible with parameter of type "const char *"
+"../src/para_update.c", line 1067: warning #169-D: argument of type "signed char *" is incompatible with parameter of type "const char *"
+"../src/para_update.c", line 1074: warning #169-D: argument of type "signed char *" is incompatible with parameter of type "const char *"
+"../src/para_update.c", line 1090: warning #179-D: variable "j" was declared but never referenced
+"../src/para_update.c", line 1100: warning #552-D: variable "l0" was set but never used
+"../src/para_update.c", line 1100: warning #552-D: variable "l1" was set but never used
+"../src/para_update.c", line 1100: warning #552-D: variable "l2" was set but never used
+"../src/para_update.c", line 1250: warning #179-D: variable "pdcch_index" was declared but never referenced
+"../src/para_update.c", line 1252: warning #552-D: variable "pdcch_cce_total" was set but never used
+"../src/para_update.c", line 1319: warning #179-D: variable "L_common_search" was declared but never referenced
+"../src/para_update.c", line 1323: warning #179-D: variable "L_index" was declared but never referenced
+"../src/para_update.c", line 1324: warning #179-D: variable "M" was declared but never referenced
+"../src/para_update.c", line 1361: warning #179-D: variable "N_cce" was declared but never referenced
+"../src/para_update.c", line 1447: warning #179-D: variable "symbol_index" was declared but never referenced
+"../src/para_update.c", line 1450: warning #179-D: variable "symbol0_k" was declared but never referenced
+"../src/para_update.c", line 1451: warning #179-D: variable "symbol1_k" was declared but never referenced
+"../src/para_update.c", line 1452: warning #179-D: variable "symbol2_k" was declared but never referenced
+"../src/para_update.c", line 1453: warning #179-D: variable "out_put_index" was declared but never referenced
+"../src/para_update.c", line 1454: warning #179-D: variable "mapping_table_ptr" was declared but never referenced
+"../src/para_update.c", line 1455: warning #179-D: variable "reg_num_per_rb" was declared but never referenced
+"../src/para_update.c", line 1456: warning #179-D: variable "N_reg" was declared but never referenced
+"../src/para_update.c", line 1457: warning #179-D: variable "N_cce" was declared but never referenced
+"../src/para_update.c", line 1459: warning #179-D: variable "reg_index0" was declared but never referenced
+"../src/para_update.c", line 1459: warning #179-D: variable "reg_index1" was declared but never referenced
+"../src/para_update.c", line 1459: warning #179-D: variable "reg_index2" was declared but never referenced
+"../src/para_update.c", line 1459: warning #179-D: variable "reg_index3" was declared but never referenced
+'Finished building: ../src/para_update.c'
+' '
+'Building target: LTE_Timer_version4.out'
+'Invoking: C6000 Linker'
+"D:/ti/C6000 Code Generation Tools 7.4.2/bin/cl6x" -mv6600 --big_endian --abi=eabi -Ooff -g --display_error_number --diag_warning=225 --diag_wrap=off -z -m"LTE_Timer_version4.map" -i"D:/CommAgility_Amc2c66xx_V0_4_9/dsp/dsplibs/inc" -i"D:/CommAgility_Amc2c66xx_V0_4_9/dsp/dsplibs/lib" -i"D:/ti/C6000 Code Generation Tools 7.4.2/lib" -i"D:/ti/pdk_C6670_1_1_2_5/packages/ti/csl/lib" -i"D:/work1/DL_zihuan/LTE_Timer_version4/lib" -i"D:/ti/C6000 Code Generation Tools 7.4.2/include" --reread_libs --warn_sections --display_error_number --diag_wrap=off --rom_model -o "LTE_Timer_version4.out"  "./common/Keystone_Serdes_init.obj" "./common/Keystone_SRIO_drv.obj" "./common/KeyStone_common.obj" "./common/KeyStone_Timer_Init.obj" "./common/KeyStone_SRIO_Init.obj" "./common/KeyStone_Multicore_Navigator_drv.obj" "./common/KeyStone_DDR_Init.obj" "./common/FunctionHook.obj" "./common/Exception.obj" "./src/timer.obj" "./src/time_agc.obj" "./src/system_init_var.obj" "./src/system_init.obj" "./src/srio_debug.obj" "./src/rs_basic_gen.obj" "./src/qmss_device.obj" "./src/precoding.obj" "./src/prbmapping.obj" "./src/pl_const.obj" "./src/phich_data_gen.obj" "./src/pdcch_scrambling.obj" "./src/para_update.obj" "./src/osal.obj" "./src/modulation.obj" "./src/lte_dl_processmain.obj" "./src/layermapping.obj" "./src/interleaver.obj" "./src/fftc_func.obj" "./src/cppi_device.obj" "./src/bcp_pdcch_CCEconfig.obj" "./src/bcp_lte_pdsch.obj" "./src/bcp_lte_pdcch.obj" "./src/bcp_lte_pbch.obj" "./src/bcp_func.obj" "./src/bcp_device.obj" "./src/Timer_drv.obj" "./src/TSC.obj" "./src/SRIO_Test_new.obj" "./src/SRIO_PktDMA_Init.obj" "./src/SRIO_2DSP_Test.obj" "./src/MNav_funct.obj" "./src/Interrupt_Handler.obj" "./src/Bitscrambling.obj" "./src/BS_DSP0_Core0_PHICH.obj" "./src/BS_DSP0_Core0_PDSCH.obj" "./src/BS_DSP0_Core0_PDCCH.obj" "./src/BS_DSP0_Core0_PCFICH.obj" "./src/BS_DSP0_Core0_PBCH.obj" "./vectors.obj" "./srio_discovery_ex.obj" "./SRIO_drv.obj" "./LTE_Test.obj" "./BSLC667X_srio_init.obj" -l"libc.a" -l"bslc6670.ae66e" -l"rts6600e_elf.lib" -l"ti.csl.ae66e" -l"ti.csl.intc.ae66e" -l"ti.drv.bcp.ae66e" -l"ti.drv.cppi.ae66e" -l"ti.drv.qmss.ae66e" "../BSLC667X_C6670update.cmd" 
+<Linking>
+warning #10247-D: creating output section ".cppi" without a SECTIONS specification
+warning #10247-D: creating output section ".qmss" without a SECTIONS specification
+warning #10247-D: creating output section ".testdata" without a SECTIONS specification
+'Finished building target: LTE_Timer_version4.out'
+' '
+
+**** Build Finished ****

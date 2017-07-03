@@ -1,0 +1,61 @@
+
+#ifndef _CSLR_QM_DESCRIPTOR_REGION_CONFIG_H_
+#define _CSLR_QM_DESCRIPTOR_REGION_CONFIG_H_
+
+
+
+#include "cslr.h"
+
+
+/* Minimum unit = 1 byte */
+
+/**************************************************************************\
+* Register Overlay Structure for MEMORY_REGION_BASE_ADDRESS_GROUP
+\**************************************************************************/
+typedef struct  {
+    volatile unsigned int MEMORY_REGION_BASE_ADDRESS_REG;
+    volatile unsigned int MEMORY_REGION_START_INDEX_REG;
+    volatile unsigned int MEMORY_REGION_DESCRIPTOR_SETUP_REG;
+    volatile unsigned char RSVD0[4];
+} CSL_Qm_descriptor_region_configMemory_region_base_address_groupRegs;
+
+/**************************************************************************\
+* Register Overlay Structure
+\**************************************************************************/
+typedef struct  {
+    CSL_Qm_descriptor_region_configMemory_region_base_address_groupRegs MEMORY_REGION_BASE_ADDRESS_GROUP[20];
+} CSL_Qm_descriptor_region_configRegs;
+
+/**************************************************************************\
+* Field Definition Macros
+\**************************************************************************/
+
+/* MEMORY_REGION_BASE_ADDRESS_REG */
+
+#define CSL_QM_DESCRIPTOR_REGION_CONFIG_MEMORY_REGION_BASE_ADDRESS_REG_REGR_BASE_MASK (0xFFFFFFFFu)
+#define CSL_QM_DESCRIPTOR_REGION_CONFIG_MEMORY_REGION_BASE_ADDRESS_REG_REGR_BASE_SHIFT (0x00000000u)
+#define CSL_QM_DESCRIPTOR_REGION_CONFIG_MEMORY_REGION_BASE_ADDRESS_REG_REGR_BASE_RESETVAL (0x00000000u)
+
+#define CSL_QM_DESCRIPTOR_REGION_CONFIG_MEMORY_REGION_BASE_ADDRESS_REG_RESETVAL (0x00000000u)
+
+/* MEMORY_REGION_START_INDEX_REG */
+
+#define CSL_QM_DESCRIPTOR_REGION_CONFIG_MEMORY_REGION_START_INDEX_REG_START_INDEX_MASK (0x0007FFFFu)
+#define CSL_QM_DESCRIPTOR_REGION_CONFIG_MEMORY_REGION_START_INDEX_REG_START_INDEX_SHIFT (0x00000000u)
+#define CSL_QM_DESCRIPTOR_REGION_CONFIG_MEMORY_REGION_START_INDEX_REG_START_INDEX_RESETVAL (0x00000000u)
+
+#define CSL_QM_DESCRIPTOR_REGION_CONFIG_MEMORY_REGION_START_INDEX_REG_RESETVAL (0x00000000u)
+
+/* MEMORY_REGION_DESCRIPTOR_SETUP_REG */
+
+#define CSL_QM_DESCRIPTOR_REGION_CONFIG_MEMORY_REGION_DESCRIPTOR_SETUP_REG_DESC_SIZE_MASK (0x1FFF0000u)
+#define CSL_QM_DESCRIPTOR_REGION_CONFIG_MEMORY_REGION_DESCRIPTOR_SETUP_REG_DESC_SIZE_SHIFT (0x00000010u)
+#define CSL_QM_DESCRIPTOR_REGION_CONFIG_MEMORY_REGION_DESCRIPTOR_SETUP_REG_DESC_SIZE_RESETVAL (0x00000000u)
+
+#define CSL_QM_DESCRIPTOR_REGION_CONFIG_MEMORY_REGION_DESCRIPTOR_SETUP_REG_REG_SIZE_MASK (0x0000000Fu)
+#define CSL_QM_DESCRIPTOR_REGION_CONFIG_MEMORY_REGION_DESCRIPTOR_SETUP_REG_REG_SIZE_SHIFT (0x00000000u)
+#define CSL_QM_DESCRIPTOR_REGION_CONFIG_MEMORY_REGION_DESCRIPTOR_SETUP_REG_REG_SIZE_RESETVAL (0x00000000u)
+
+#define CSL_QM_DESCRIPTOR_REGION_CONFIG_MEMORY_REGION_DESCRIPTOR_SETUP_REG_RESETVAL (0x00000000u)
+
+#endif

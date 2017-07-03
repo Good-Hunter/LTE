@@ -1,0 +1,51 @@
+/*
+ * netcp.h
+ *
+ *  Created on: 2017-5-2
+ *      Author: hnx
+ */
+
+#ifndef NETCP_H_
+#define NETCP_H_
+
+
+/*
+ * Include Files:
+ */
+#include <Emac_config.h>
+#include <stdio.h>
+#include <ti\csl\csl_pscAux.h>
+#include <dsp\netcp\BSLC667X_netcp.h>
+
+/* External definiton for g_BoardInfo */
+extern BSLC667X_BoardInfo_s  g_BoardInfo;
+
+/***** Application Defines *****/
+#define SIZE_HOST_DESC			64
+#define TOTAL_DESC_NETCP		32
+#define	TX_HOST_DESC			TOTAL_DESC_NETCP/2
+#define	RX_HOST_DESC			TOTAL_DESC_NETCP/2
+
+
+#define	TX_BUFF_SIZE			(10000) // Range 64 - 9212B only.
+#define RX_BUFF_SIZE			(10000)
+
+
+
+#pragma DATA_SECTION (Netcp_TxBuff, "TxBuff_in_DDR3");
+#pragma DATA_ALIGN(TxBuff, 16)
+Uint8 Netcp_TxBuff[TX_BUFF_SIZE*TX_HOST_DESC];
+
+#pragma DATA_SECTION (Netcp_RxBuff, "RxBuff_in_DDR3");
+#pragma DATA_ALIGN(Netcp_RxBuff, 16)
+Uint8 Netcp_RxBuff[RX_BUFF_SIZE*RX_HOST_DESC];
+
+
+
+
+#define	PUSH_QUEUE(q, desc)	*((volatile Uint32 *)(QM_MGMT_REG + REG_D + (q * 16))) = (desc | ((SIZE_HOST_DESC >> 4) - 1));
+#define	POP_QUEUE(q)		*((volatile Uint32 *)(QM_MGMT_REG + REG_D + (q * 16)))
+#define GET_Q_ENTRY_COUNT(q)	*((volatile Uint32 *)(QM_STAT_CONF_REG + REG_A + (q * 16))) & 0x0007FFFF
+extern void netcp_main();
+
+#endif /* NETCP_H_ */

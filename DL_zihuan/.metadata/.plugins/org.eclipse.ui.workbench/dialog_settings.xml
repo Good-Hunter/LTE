@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="MemoryDumperFillAction">
+		<item value="TIXDS100v2" key="com.ti.ccstudio.system.setup.ui.editors.connectionType"/>
+		<item value="Texas Instruments XDS100v2 USB Emulator" key="com.ti.ccstudio.system.setup.ui.editors.connectionName"/>
+	</section>
+	<section name="MemoryDumperLoadAction">
+		<item value="0x8125cf00" key="MemoryDumperMemoryBlockPage.STORE_ADDRESS_EXPRESSION_ID"/>
+		<item value="100" key="MemoryDumperMemoryBlockPage.STORE_SIZE_VALUE_ID"/>
+		<item value="8" key="MemoryDumperMemoryBlockPage.STORE_TYPE_SIZE_VALUE_ID"/>
+		<item value="false" key="MemoryDumperMemoryBlockPage.STORE_SWAP_ID"/>
+		<item value="" key="MemoryDumperMemoryBlockPage.STORE_PAGE_ID"/>
+		<item value="C:\Users\hnx\Desktop\mactophytype3.dat" key="MemoryDumperFileSelectionPage.STORE_FILE_PATH_ID"/>
+		<item value="2166738688" key="MemoryDumperMemoryBlockPage.STORE_ADDRESS_VALUE_ID"/>
+		<item value="100" key="MemoryDumperMemoryBlockPage.STORE_SIZE_ID"/>
+		<item value="0" key="MemoryDumperMemoryBlockPage.STORE_TYPE_SIZE_ID"/>
+		<item value="32-Bit Hex - TI Style" key="MemoryDumperMemoryBlockPage.STORE_FILE_FORMAT_TYPE_ID"/>
+		<item value="false" key="MemoryDumperMemoryBlockPage.STORE_APPEND_ID"/>
+		<item value="false" key="MemoryDumperFileSelectionPage.STORE_USE_FILE_HEADER"/>
+	</section>
+	<section name="ImportExportAction">
+		<item value="com.ti.ccstudio.project.ui.wizards.importexport.ExternalProjectImportWizard" key="ImportExportPage.STORE_SELECTED_IMPORT_WIZARD_ID"/>
+		<list key="ImportExportPage.STORE_EXPANDED_IMPORT_CATEGORIES">
+			<item value="com.ti.common.ui.import"/>
+		</list>
+	</section>
+</section>

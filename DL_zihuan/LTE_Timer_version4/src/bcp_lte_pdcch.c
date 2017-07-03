@@ -1,0 +1,301 @@
+/***********************************************/
+/*bcp_lte_pdcch                                */
+/*功能：完成BCP相关配置                        */
+/***********************************************/
+#include "system_init.h"
+#include "pl_comm.h"
+
+
+
+
+static signed int add_bcp_config_data_pdcch(unsigned char*  pDataBuffer,
+                                   CELL_PARA *cell_para_ptr,
+                                   MAC_PARA *mac_para_ptr,
+                                   unsigned int numTestPkts,
+                                   unsigned char ns)//若提取出参数计算则ns可去
+{
+    unsigned int                dataBufferLen, tmpLen;
+    BcpTest_LteCBParams         codeBlkParams;
+    unsigned int                lteChanType, cInit;
+    Bcp_RadioStd                radioStd;
+    Bcp_GlobalHdrCfg            bcpGlblHdrCfg;
+    Bcp_CrcHdrCfg               crcHdrCfg;
+    Bcp_EncHdrCfg               encHdrCfg;
+    BcpTest_RateMatchParams     rmParams;
+    Bcp_RmHdr_LteCfg            lteRmHdrCfg;
+    Bcp_ModHdrCfg               modHdrCfg;
+    Bcp_TmHdrCfg                tmHdrCfg;
+    unsigned char*              pDataBuffer_ptr;
+    unsigned char               codeword_to_layer_mapping,R_subblock_TC;
+    unsigned int                method2_id;
+    unsigned char               pdcch_format;
+    unsigned short              pdcch_bit_length;
+    char                        common_pdcch_flag;
+    unsigned char               DCI_cce_num,m,temp_start_CCE;
+    unsigned char aggregation_level_table[4] = {1,2,4,8};
+    
+    pdcch_format = mac_para_ptr->pdcch_para[numTestPkts].pdcch_format;//速率匹配模块会用到pdcch_bit_length
+    pdcch_bit_length = g_const_DCI_bit_num_table[pdcch_format];//速率匹配模块会用到pdcch_bit_length
+
+//    common_pdcch_flag = mac_para_ptr->pdcch_para[numTestPkts].common_pdcch;
+//    DCI_cce_num = g_const_pdcch_cce_num_table[pdcch_format];//没用上DCI_cce_num；
+//    mac_para_ptr->pdcch_para[numTestPkts].start_CCE =  f_pdcch_cce_start(pdcch_format,
+//                         	 	 	 	 	 	 	 	 	 	 	 	 mac_para_ptr->pdcch_para[numTestPkts].rnti,
+//                         	 	 	 	 	 	 	 	 	 	 	 	 cell_para_ptr->pdcch_total_cce_num[ns >> 1],
+//                         	 	 	 	 	 	 	 	 	 	 	 	 ns >> 1,
+//                         	 	 	 	 	 	 	 	 	 	 	 	 common_pdcch_flag
+//                           	   	   	   	   	   	   	   	   	   	   	   	   );
+//    if(0 == pdcch_cce_unuse_flag[ mac_para_ptr->pdcch_para[numTestPkts].start_CCE])//已经被同RNTI占用
+//    {
+//
+//       for(m = 1;m < g_const_pdcch_serch_space[pdcch_format];m++)
+//       {
+//    	   temp_start_CCE
+//    	   =  mac_para_ptr->pdcch_para[numTestPkts].start_CCE + m * aggregation_level_table[pdcch_format];
+//    	   temp_start_CCE = temp_start_CCE % (cell_para_ptr->pdcch_total_cce_num[ns >> 1] / aggregation_level_table[pdcch_format]);
+//           if(1 == pdcch_cce_unuse_flag[temp_start_CCE])//说明没有被占用
+//           {
+//        	   mac_para_ptr->pdcch_para[numTestPkts].start_CCE = temp_start_CCE;
+//        	   break;
+//           }
+//       }
+//       pdcch_cce_unuse_flag[mac_para_ptr->pdcch_para[numTestPkts].start_CCE] = 0;
+//    }
+//    else
+//    {
+//       pdcch_cce_unuse_flag[mac_para_ptr->pdcch_para[numTestPkts].start_CCE] = 0;
+//    }
+
+    
+    
+    /* Get the code block params */
+    memset(&codeBlkParams,0,sizeof(codeBlkParams));
+    R_subblock_TC = (mac_para_ptr->pdcch_para[numTestPkts].dci_bit_len + 16 + 31) / 32;//32为矩阵的列数
+    codeBlkParams.numFillerBits = 0;
+    codeBlkParams.numCodeBks = 1;
+    codeBlkParams.codeBkSizeKp = mac_para_ptr->pdcch_para[numTestPkts].dci_bit_len + 16;
+    codeBlkParams.numCodeBksKp = 1;
+    codeBlkParams.outputbitsNoFiller = mac_para_ptr->pdcch_para[numTestPkts].dci_bit_len + 16;
+    
+    
+    /* To begin with, lets test LTE PSDCH channel */
+    radioStd    =   Bcp_RadioStd_LTE; 
+    
+    /* Start adding BCP Packet headers based on the test configuration we read. */
+
+    /* Initialize our data buffer length running counter */
+    dataBufferLen   =   0;
+    tmpLen = 0;
+
+    pDataBuffer_ptr = pDataBuffer;
+
+    pDataBuffer   +=  8;/*Global Header len*/
+    dataBufferLen +=  8;/*Global Header len*/
+    tmpLen = 0;
+
+    /* Header 2: CRC Header */
+    //PDCCCH CRC 用RNTI加扰
+    method2_id = mac_para_ptr->pdcch_para[numTestPkts].rnti << 16;
+    
+    
+    prepare_crchdr_cfg (&crcHdrCfg, 
+                        Bcp_RadioStd_WIMAX_802_16E, //借用此配置为PBCH配置CRC16
+                        mac_para_ptr->pdcch_para[numTestPkts].dci_bit_len,
+                        codeBlkParams.numFillerBits, 
+                        method2_id, 0, 0, 0, 0, 0, 0, NULL);
+    if (Bcp_addCRCHeader (&crcHdrCfg, pDataBuffer, &tmpLen) < 0)
+    {          
+        printf ("Failed to add CRC Header to packet \n");
+        return -1;
+    }
+    pDataBuffer   +=  tmpLen;
+    dataBufferLen +=  tmpLen;
+    tmpLen = 0;
+#if 1
+    /* Header 3: Encoder Header */
+    prepare_lte_enchdr_cfg (&encHdrCfg, radioStd, LTE_PDCCH, &codeBlkParams);
+    if (Bcp_addEncoderHeader (&encHdrCfg, pDataBuffer, &tmpLen) < 0)
+    {          
+        printf ("Failed to add Encoder Header to packet \n");            
+        return -1;
+    }
+    pDataBuffer   +=  tmpLen;
+    dataBufferLen +=  tmpLen;
+    tmpLen      = 0;
+
+    /* Header 4: Rate matching header */
+    //对于PDCCH端口数就是层数
+    codeword_to_layer_mapping = codeword_to_layer_mapping_0[0][cell_para_ptr->num_antenna_port - 1];
+    
+    memset(&rmParams,0,sizeof(rmParams));
+    rmParams.NcbKp = R_subblock_TC * 32 * 3;//缓冲区
+    rmParams.E0 = pdcch_bit_length;
+    prepare_lte_rmhdr_cfg(&lteRmHdrCfg, LTE_PDCCH, &codeBlkParams, &rmParams);
+
+    if (Bcp_addLte_RMHeader(&lteRmHdrCfg, pDataBuffer, &tmpLen) < 0)
+    {          
+        printf ("Failed to add lte rate modulation header to packet \n");            
+        return -1;
+    }
+    pDataBuffer   +=  tmpLen;
+    dataBufferLen +=  tmpLen;
+    tmpLen = 0;
+
+    /* Header 5: Modulation header */
+    cInit = 0;//不加扰
+    prepare_modhdr_cfg(&modHdrCfg,
+                        Bcp_RadioStd_WIMAX_802_16E, //因为PDCCH不能在此处加扰，故借用别的协议类型
+                        0, // number of subcarrier, not used,
+                        QPSK,
+                        0, //uncompressed mode
+                        16384,//rms Q(16,2)
+                        0, //numOFDMsymPerSubfrm, not used
+                        0, //numCqiSubcs
+                        0, //numRiSubcs
+                        0, //numAckSubcs
+                        cInit,
+                        0); //qformat
+    if(Bcp_addModulatorHeader(&modHdrCfg, pDataBuffer, &tmpLen) < 0)
+    {           
+        printf ("Failed to add Modulation header to packet \n");            
+        return -1;
+    }
+    pDataBuffer   +=  tmpLen;
+    dataBufferLen +=  tmpLen;
+    tmpLen      = 0;
+#endif
+    /* Header 6: Traffic Manager header */
+    prepare_tmhdr_cfg(&tmHdrCfg);
+    if (Bcp_addTMHeader(&tmHdrCfg, pDataBuffer, &tmpLen) < 0)
+    {           
+        printf ("Failed to add Traffic Manager header to packet \n");            
+        return -1;
+    }
+    pDataBuffer   +=  tmpLen;
+    dataBufferLen +=  tmpLen;
+    tmpLen      = 0;
+
+    /* Header 1: Global Header */
+    bcpGlblHdrCfg.pkt_type          =   Bcp_PacketType_Normal;
+    bcpGlblHdrCfg.flush             =   0;
+    bcpGlblHdrCfg.drop              =   0;
+    bcpGlblHdrCfg.halt              =   0;
+    bcpGlblHdrCfg.radio_standard    =   radioStd;
+    bcpGlblHdrCfg.hdr_end_ptr       =   dataBufferLen >> 2;
+    bcpGlblHdrCfg.flow_id           =   FLOW0;
+    bcpGlblHdrCfg.destn_tag         =   0xDEAD;
+    if (Bcp_addGlobalHeader (&bcpGlblHdrCfg, pDataBuffer_ptr, &tmpLen) < 0)
+    {
+        printf ("Failed to add Global Header to packet \n");
+        return -1;
+    }
+    
+
+    memcpy(pDataBuffer,
+          (const void*)mac_para_ptr->pdcch_para[numTestPkts].DCI_data,
+          ((mac_para_ptr->pdcch_para[numTestPkts].dci_bit_len + 31)>>5)*4);//必须以128bit单位输入，从低bit向高bit输入
+    dataBufferLen += ((mac_para_ptr->pdcch_para[numTestPkts].dci_bit_len + 31)>>5)*4;/*byte为单位*/
+    /* Successfully read the test configuration */        
+    return dataBufferLen;
+}
+
+/*计算和配置bcp相关参数*/
+unsigned int bcp_lte_pdcch(CELL_PARA *cell_para_ptr,
+                           unsigned char slot_idx,
+                           MAC_PARA *mac_para_ptr,
+                           Uint32 *restrict descrambling_bits,//20150414没用到，直接用的g_pdcch_pseudo
+                           unsigned int rxDataBufferLen[],//注意pl_comm.h里的声明要变
+                           unsigned char * pRxDataBuffer[]
+                           )
+{
+    BCP_HostPacketDescriptor* pCppiDesc;
+    BCP_HostPacketDescriptor* pRxDesc;
+    Cppi_DescType descType;
+    unsigned int dataBufferLen;
+    unsigned int dataBufferLenUsed;
+    unsigned int rxDataTotalLen;
+    unsigned int test_ok_flag = 1;
+    unsigned int pdcch_index;
+    unsigned int tx_num_packet = 1;
+       
+    unsigned char* pDataBuffer;
+//    unsigned char* pRxDataBuffer[10];//20150414
+//    unsigned int i,start_CCE;
+//    unsigned int *restrict input_ptr;
+//    unsigned int *restrict output_ptr;
+
+    for (pdcch_index = 0; pdcch_index < mac_para_ptr->pdcch_num; pdcch_index ++)
+    {
+        
+        
+        /* Build and Send a packet with LTE DL parameters for BCP Processing */
+        if ((pCppiDesc = (BCP_HostPacketDescriptor*) Qmss_queuePop (BCP_Tx_FDQ)) == NULL)
+        {
+            printf ("Error poping bcp tx packet \n");
+            test_ok_flag = 0;
+            return(test_ok_flag);
+        }
+        pCppiDesc->src_tag_lo = FLOW0;
+        pDataBuffer = (unsigned char*)pCppiDesc->buffer_ptr;
+        dataBufferLen = pCppiDesc->buffer_len;
+        
+        //memset (pDataBuffer, 0, dataBufferLen);
+
+        /* Read test configuration */
+        dataBufferLenUsed = add_bcp_config_data_pdcch(pDataBuffer,
+                                                cell_para_ptr,
+                                                mac_para_ptr,
+                                                pdcch_index,
+                                                slot_idx);
+        if(0 >= dataBufferLenUsed)
+        {
+            printf ("Error populating bcp packet \n");
+            test_ok_flag = 0;
+            return(test_ok_flag);
+        }
+
+        pCppiDesc->packet_length = dataBufferLenUsed;
+        CACHE_wbL2(pDataBuffer, dataBufferLenUsed, CACHE_WAIT);
+    
+        Qmss_queuePushDescSize(BCP_Tx_QUE, (void*)pCppiDesc, BCP_DESC_SIZE);
+    }
+
+
+    /* Wait on data to be received from BCP and validate it. Poll on Rx queue for results. */
+    while (Qmss_getQueueEntryCount (BCP_Rx_QUE) < mac_para_ptr->pdcch_num);
+
+
+    while (Qmss_getQueueEntryCount (BCP_Rx_QUE) == mac_para_ptr->pdcch_num)
+    {
+    	if(mac_para_ptr->pdcch_num==0)
+    		break;                            //2015.8.7JX加
+        rxDataTotalLen = 0;
+        for (pdcch_index = 0; pdcch_index < mac_para_ptr->pdcch_num; pdcch_index ++)
+        {
+
+            /* Data could arrive scattered across multiple linked descriptors.
+             * Collect data from all linked descriptors and validate it.
+             */
+            
+            
+            pRxDesc = (BCP_HostPacketDescriptor*) Qmss_queuePop (BCP_Rx_QUE);
+            
+            descType = Cppi_getDescType ((Cppi_Desc*)pRxDesc);
+            
+            /* Get Data buffer containing the output and its length */
+            Cppi_getData (descType, (Cppi_Desc*)pRxDesc, &pRxDataBuffer[pdcch_index], &rxDataBufferLen[pdcch_index]);
+
+            rxDataTotalLen += rxDataBufferLen[pdcch_index];
+            
+            Qmss_queuePushDescSize(BCP_Rx_FDQ, (void*)pRxDesc, BCP_DESC_SIZE);
+            
+            //pRxDesc = (BCP_HostPacketDescriptor*)Cppi_getNextBD (descType, (Cppi_Desc*)pRxDesc);
+            /* Check if there are any descriptors linked to this Rx desc */
+        }    
+
+               
+    }
+    
+    return(test_ok_flag);
+}
+

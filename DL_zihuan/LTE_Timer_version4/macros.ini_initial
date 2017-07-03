@@ -1,0 +1,7 @@
+KeyStone_common_code=..\common
+CSL_INSTALL_PATH    = D:\ti\pdk_C6670_1_1_2_5\packages
+
+BSL_C667X_INSTALL_DIR=D:\CommAgility_Amc2c66xx_V0_4_9\dsp
+PDK_C6678_INSTALL_DIR=D:\ti\pdk_C6678_1_1_2_5
+PDK_C6670_INSTALL_DIR=D:\ti\pdk_C6670_1_1_2_5
+CGT_INSTALL_DIR=D:\ti\C6000 Code Generation Tools 7.4.2

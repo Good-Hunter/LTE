@@ -1,0 +1,35 @@
+
+#ifndef _CSLR_TCP3D_DMA_OFFSETS_H_
+#define _CSLR_TCP3D_DMA_OFFSETS_H_
+
+/* Minimum unit = 1 byte */
+
+/* TCP3D DMA MEMORY OFFSETS */
+
+/* Input Config Register Memory offsets */
+#define CSL_TCP3D_DMA_TCP3D_IC_CFG0_P0_OFFSET       (0x000000u)
+#define CSL_TCP3D_DMA_TCP3D_OUT_STS0_P0_OFFSET      (0x000100u)
+
+#define CSL_TCP3D_DMA_TCP3D_IC_CFG0_P1_OFFSET       (0x000200u)
+#define CSL_TCP3D_DMA_TCP3D_OUT_STS0_P1_OFFSET      (0x000300u)
+
+/* Input Memory offsets */
+#define CSL_TCP3D_DMA_TCP3D_SYS_P0_OFFSET           (0x010000u)
+#define CSL_TCP3D_DMA_TCP3D_PAR0_P0_OFFSET          (0x012000u)
+#define CSL_TCP3D_DMA_TCP3D_PAR1_P0_OFFSET          (0x014000u)
+#define CSL_TCP3D_DMA_TCP3D_INTER_P0_OFFSET         (0x020000u)
+
+#define CSL_TCP3D_DMA_TCP3D_SYS_P1_OFFSET           (0x016000u)
+#define CSL_TCP3D_DMA_TCP3D_PAR0_P1_OFFSET          (0x018000u)
+#define CSL_TCP3D_DMA_TCP3D_PAR1_P1_OFFSET          (0x01A000u)
+#define CSL_TCP3D_DMA_TCP3D_INTER_P1_OFFSET         (0x024000u)
+
+/* Output Memory offsets */
+#define CSL_TCP3D_DMA_TCP3D_OUT_HD0_OFFSET          (0x030000u)
+#define CSL_TCP3D_DMA_TCP3D_OUT_HD1_OFFSET          (0x031000u)
+
+#define CSL_TCP3D_DMA_TCP3D_OUT_SO0_OFFSET          (0x080000u)
+#define CSL_TCP3D_DMA_TCP3D_OUT_SO1_OFFSET          (0x082000u)
+#define CSL_TCP3D_DMA_TCP3D_OUT_SO2_OFFSET          (0x084000u)
+
+#endif

@@ -1,0 +1,70 @@
+
+#ifndef _CSLR_CP_TIMER16_H_
+#define _CSLR_CP_TIMER16_H_
+
+
+
+#include "cslr.h"
+
+
+/* Minimum unit = 1 byte */
+
+/**************************************************************************\
+* Register Overlay Structure
+\**************************************************************************/
+typedef struct  {
+    volatile unsigned int TIMER_CNTRL_REG;
+    volatile unsigned int TIMER_LOAD_REG;
+    volatile unsigned int TIMER_VALUE_REG;
+    volatile unsigned int TIMER_IRQ_REG;
+} CSL_Cp_timer16Regs;
+
+/**************************************************************************\
+* Field Definition Macros
+\**************************************************************************/
+
+/* TIMER_CNTRL_REG */
+
+#define CSL_CP_TIMER16_TIMER_CNTRL_REG_GO_MASK (0x00000001u)
+#define CSL_CP_TIMER16_TIMER_CNTRL_REG_GO_SHIFT (0x00000000u)
+#define CSL_CP_TIMER16_TIMER_CNTRL_REG_GO_RESETVAL (0x00000000u)
+
+#define CSL_CP_TIMER16_TIMER_CNTRL_REG_MODE_MASK (0x00000002u)
+#define CSL_CP_TIMER16_TIMER_CNTRL_REG_MODE_SHIFT (0x00000001u)
+#define CSL_CP_TIMER16_TIMER_CNTRL_REG_MODE_RESETVAL (0x00000000u)
+
+#define CSL_CP_TIMER16_TIMER_CNTRL_REG_PRESCALE_MASK (0x0000003Cu)
+#define CSL_CP_TIMER16_TIMER_CNTRL_REG_PRESCALE_SHIFT (0x00000002u)
+#define CSL_CP_TIMER16_TIMER_CNTRL_REG_PRESCALE_RESETVAL (0x00000000u)
+
+#define CSL_CP_TIMER16_TIMER_CNTRL_REG_PSE_MASK (0x00008000u)
+#define CSL_CP_TIMER16_TIMER_CNTRL_REG_PSE_SHIFT (0x0000000Fu)
+#define CSL_CP_TIMER16_TIMER_CNTRL_REG_PSE_RESETVAL (0x00000000u)
+
+#define CSL_CP_TIMER16_TIMER_CNTRL_REG_RESETVAL (0x00000000u)
+
+/* TIMER_LOAD_REG */
+
+#define CSL_CP_TIMER16_TIMER_LOAD_REG_COUNT_MASK (0x0000FFFFu)
+#define CSL_CP_TIMER16_TIMER_LOAD_REG_COUNT_SHIFT (0x00000000u)
+#define CSL_CP_TIMER16_TIMER_LOAD_REG_COUNT_RESETVAL (0x0000FFFFu)
+
+#define CSL_CP_TIMER16_TIMER_LOAD_REG_RESETVAL (0x0000FFFFu)
+
+/* TIMER_VALUE_REG */
+
+#define CSL_CP_TIMER16_TIMER_VALUE_REG_CURR_COUNT_MASK (0x0000FFFFu)
+#define CSL_CP_TIMER16_TIMER_VALUE_REG_CURR_COUNT_SHIFT (0x00000000u)
+#define CSL_CP_TIMER16_TIMER_VALUE_REG_CURR_COUNT_RESETVAL (0x0000FFFFu)
+
+#define CSL_CP_TIMER16_TIMER_VALUE_REG_RESETVAL (0x0000FFFFu)
+
+/* TIMER_IRQ_REG */
+
+#define CSL_CP_TIMER16_TIMER_IRQ_REG_INTERRUPT_MASK (0x00000001u)
+#define CSL_CP_TIMER16_TIMER_IRQ_REG_INTERRUPT_SHIFT (0x00000000u)
+#define CSL_CP_TIMER16_TIMER_IRQ_REG_INTERRUPT_RESETVAL (0x00000000u)
+
+#define CSL_CP_TIMER16_TIMER_IRQ_REG_RESETVAL (0x00000000u)
+
+#endif

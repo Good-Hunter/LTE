@@ -1,0 +1,605 @@
+/*
+ * lte_dl_processmain.c
+ *
+ *  Created on: 2014-11-5
+ *      Author: cmonroes
+ */
+#include <stdio.h>
+#include <SRIO_drv.h>
+//#include <TSC_module.h>
+#include <string.h>
+/**********文件说明****************************************************************************/
+/*  本文件的主要功能： 本文件主要完成PDSCH下行发射链路功能                */
+/*  本文件的功能概述： 只分布在core0上，  根据需要的上层参数进行参数更行，
+           对PDSCH下行发端进行处理   。其中CRC添加、信道编译码、速率匹配、调制
+           等4部分由硬件加速器BCP（Bit Rate Coprocessor）完成；组帧后的IFFT
+           处理由硬件加速器FFTC（Fast Fourier Transform Coprocessor）完成；
+           剩余的传输比特组包、层映射、预编码、prb映射、小区参数计算、增益因
+           子均衡、组包、组帧等功能全由DSP编程完成。                                               */
+/*  本文件包含的主要子程序如下：main（）函数                                                  */
+/*  本文件包含的主要头文件：                                           */
+/*********************************************************************************************/
+#include "system_init.h"
+#include "pl_comm.h"
+#include "TSC.h"
+
+#include "PHY_PHYADP_interfaceV3.h"
+
+//#define SRIO_DATA_BUFFER_SIZE		245760				//32KB 32768
+#define SRIO_DATA_BUFFER_SIZE		30720*4
+#define SRIO_RECDATA_BUFFER_SIZE		307200  //cs 14/11/19
+#define SRIO_PHYTO719_SIZE             16             //2015/8/5
+
+
+
+
+SRIO_Trans_Config transParameter[]=
+{
+	/*远端高地址*/			/*远端低地址*/						/*本地地址*/					/*字节数*/			/*端口号*/			/*LSU编号*/
+{		0,			(Uint32)0x10870000,		(Uint32)0x10870000,		SRIO_DATA_BUFFER_SIZE,		SRIO_PORT_0,	SRIO_LSU_NUM_0},
+{		0,			(Uint32)0xfc400000,		(Uint32)0x0c0ba150 ,		SRIO_PHYTO719_SIZE ,		SRIO_PORT_0,	SRIO_LSU_NUM_0}
+};
+
+
+volatile int count_num=-1;
+volatile int count_timer=0;
+volatile int process_num1=0;
+//volatile int process_num2=0;
+volatile int slow_error_flag=0;
+volatile int fast_error_flag=0;
+
+volatile int interrupt_flag = 0;
+
+
+
+#pragma DATA_ALIGN (timer_flag, 128)
+#pragma DATA_SECTION(timer_flag, ".shareddata")
+volatile int timer_flag = 0;
+
+#pragma DATA_ALIGN (process_flag, 128)
+#pragma DATA_SECTION(process_flag, ".shareddata")
+volatile int process_flag[32*10] = {0};
+
+#pragma DATA_ALIGN (process_num2, 128)
+#pragma DATA_SECTION(process_num2, ".shareddata")
+volatile int process_num2 =0;
+unsigned int temp_flag[31]={0};
+volatile int counter=-1;
+unsigned int iii=1;
+unsigned int process_cycle[100];
+unsigned int trans_num=0;
+
+#pragma DATA_SECTION(phyto719, ".shareddata")
+unsigned int phyto719[4];
+
+volatile ENB_DL_DEVICE_ID* MACtoDSPflag;
+
+/***********************************************/
+/*main                                         */
+/*功能：LTE PDSCH TRANSMITTER MAIN PROCESSER   */
+/***********************************************/
+/*2014.9.10修改程序，五用户*/
+#include "system_init.h"
+#include "pl_comm.h"
+
+unsigned int g_ucDoorbellIntrFlag = 0;
+//extern Uint8 g_ucDoorbellIntrFlag;
+#define SRC_ADDR			(0x10870000)
+#define DST_ADDR			(0x10875000)
+#define DST_ADDR1			(0x0c000000)
+#define DST_ADDR2			(0x0c030000)
+
+int   datasend = 0;
+int   dbinfo = 0;
+int   ping = 0,pong = 0;
+int   frame0=0,frame1=0,frame2=0,frame3=0,frame4=0,frame5=0,frame6=0,frame7=0,frame8=0,frame9=0;
+int   firstframe = 0;
+int   dberror = 0;
+int   doorbell[100] = {0};
+int   tmp = 0;
+int   timecount[2][100] = {0};
+int   dbtime = 0;
+int   nowtime;
+unsigned int a=0;
+unsigned int b=0;
+unsigned int c=0;
+unsigned int d=0;
+
+
+/*LTE PDSCH TRANSMITTER MAIN PROCESSER*/
+void main(void)
+{
+	TSC_init();
+	//Device_Interrupt_init();
+	//IntcInitialise();
+
+
+    unsigned int ok_flag = 1;
+    unsigned int i;
+
+    unsigned int user_index;
+    unsigned int* ssc_data_ptr;
+    unsigned char total_symbol;
+    unsigned int fftc_output_data_address[NUM_RX_DESC];
+    //unsigned int dft_list[6 * NUM_ANTENNA_PORT_4];
+    unsigned char * rsgen_output_buffer[6];
+    signed int * precoding_data_buffer[NUM_ANTENNA_PORT_2];
+    signed int * output_data[NUM_ANTENNA_PORT_2];
+    signed int * precoding_pbch_data_buffer[NUM_ANTENNA_PORT_2];
+    signed int * precoding_pcfich_data_buffer[NUM_ANTENNA_PORT_2];
+    signed int * precoding_pdcch_data_buffer[NUM_ANTENNA_PORT_2];
+    signed int * precoding_phich_data_buffer[NUM_ANTENNA_PORT_2];
+    TDSP_Type dspType;
+
+    unsigned int process_start;
+
+    glbCoreId = CSL_chipReadReg (CSL_CHIP_DNUM);
+    /********************缓存配置**********************/
+#ifndef SIMULATOR
+    CACHE_setL1PSize(CACHE_L1_32KCACHE);
+    CACHE_setL1DSize(CACHE_L1_32KCACHE);
+    CACHE_setL2Size(CACHE_256KCACHE);
+    CACHE_invAllL1p(CACHE_WAIT);
+    CACHE_wbInvAllL1d(CACHE_WAIT);
+//网口屏蔽
+#if 0
+    /*************MAR寄存器配置************************/
+    /*make other cores local memory cacheable and prefetchable*/
+    for(i=16; i<24; i++)
+    	CGEM_regs->MAR[i]=1|(1<<CSL_CGEM_MAR0_PFX_SHIFT);
+    /*make DDR cacheable and non-prefetchable*/
+    for(i=128; i<256; i++)
+    	CGEM_regs->MAR[i]=1|(1<<CSL_CGEM_MAR0_PFX_SHIFT);
+    /*make other space non-cacheable and non-prefetchable*/
+    for(i=24; i<128; i++)
+    	CGEM_regs->MAR[i]=0;
+#endif
+#endif
+
+#ifndef SIMULATOR
+    dspType= Get_dsp_type();
+    if(NYQUIST==dspType||TRUBO_NYQUIST==dspType)
+    {
+        //DSP core speed
+        //KeyStone_main_PLL_init (236, 29);   //for 122.88MHz input clock
+
+    	//DDR speed = 66.67*20/1= 1333
+    	KeyStone_DDR_PLL_init (20, 1);
+
+        Nyquist_EVM_DDR_Init(666.667);  //for 1333Mbps
+        //serdes_cfg.commonSetup.inputRefClock_MHz = 250;//156.25;
+    }
+    else
+    {
+    	puts("Unknown DSP type!");
+        return;
+    }
+#endif
+
+      //uiDspNum= 0;
+      //fxx_srio_init(uiDspNum);
+
+    if(0==glbCoreId)
+    {
+    	SrioDevice_init ();
+    	/***********协处理器初始化***********/
+    	enable_fftc ();
+    	fftc_system_init(CSL_FFTC_A);
+
+    	for (i = 0; i < NUM_RX_DESC; i++)
+    	{
+    		fftc_output_data_address[i] = (unsigned int)&gTxBuffer[i];
+    	}
+
+    	/*Setup TX free queue*/
+    	if(Setup_Tx_FDQ() != 0)
+    	{
+    		printf ("[Core %d]: FFTC setup TX FDQ failed \n", glbCoreId);
+    	}
+
+
+    	/*Setup RX free queue*/
+    	if(Setup_Rx_FDQ(fftc_output_data_address) != 0)
+    	{
+    		printf ("[Core %d]: FFTC setup RX FDQ failed \n", glbCoreId);
+    	}
+
+
+    	/*CSL_FFTC_A:fftc_cfgRegs = (CSL_FftcRegs*)(0x021F0000)
+    	 * CSL_FFTC_B:fftc_cfgRegs = (CSL_FftcRegs*)(0x021F4000)*/
+    	/*FFTC Global config*/
+    	if(fftc_global_config((CSL_FftcRegs*)0x021F0000) != 0)
+    	{
+    		printf ("[Core %d]: FFTC Global config failed \n", glbCoreId);
+    	}
+
+    	system_init();
+
+        /************************total_buffer初始化**********************/
+#if 0
+    	memcpy(total_output_data[0][0],subframe_0_0,sizeof(subframe_0_0));
+    	memcpy(total_output_data[1][0],subframe_1_0,sizeof(subframe_1_0));
+    	memcpy(total_output_data[5][0],subframe_5_0,sizeof(subframe_5_0));
+    	memcpy(total_output_data[6][0],subframe_6_0,sizeof(subframe_6_0));
+#endif
+    	/**************数据处理****************/
+    	for(;;)
+		{
+			/*if(slot_idx==0)
+			{
+				process_start = TSCL;
+			}*/
+
+    		process_start = TSCL;
+
+			CACHE_invL2((void *)&process_num2, sizeof(process_num2), CACHE_WAIT);
+			CACHE_invL2((void *)&process_flag[16*slot_idx], sizeof(process_flag[16*slot_idx]), CACHE_WAIT);
+
+			//网口屏蔽 hnx
+#if 0
+			CSL_XMC_invalidatePrefetchBuffer();
+  		  		    _mfence();
+  		  		    _mfence();
+#endif
+			//注：这里在8号下行子帧，判定0号子帧已经发送了，再往下处理，防止处理过快，刷掉之前的数据
+#if 0
+			if(slot_idx%2 == 0)
+			{
+				while(process_flag[16*slot_idx]==1)
+				{
+					CACHE_invL2((void *)&process_flag[16*slot_idx], sizeof(process_flag[16*slot_idx]), CACHE_WAIT);
+				}
+			}
+#endif
+
+
+			/*******************参数更新**********************/
+			BS_DSP0_Core0_Para_Update();//参数更新2015.4.27
+			/*******************参数更新结束**********************/
+
+			for(i = 0;i < NUM_ANTENNA_PORT_2;i++)
+			{
+				output_data[i] = vxx_output_data[i];
+				precoding_pbch_data_buffer[i] = vxx_pbch_precoding_data[i];
+				precoding_pcfich_data_buffer[i] = g_pcfich_data_after_precoding[i];
+				precoding_pdcch_data_buffer[i] = g_pdcch_data_after_precoding[i];
+				precoding_phich_data_buffer[i] = g_phich_data_after_precoding[i];
+			}
+
+			if(UL == vxx_cell_para.subframe_direction[slot_idx >> 1])
+			{
+				slot_idx = (slot_idx+2)%20;
+				subframeN = slot_idx/2;
+				continue;
+			}
+
+			if((slot_idx == 2) || (slot_idx == 12))/*特殊子帧*/
+			{
+				total_symbol = vxx_cell_para.dwpts_symbol;
+			}
+			else
+			{
+				total_symbol = 2 * N_SYM_PER_SLOT;
+			}
+
+			if(slot_idx == 0)
+			{
+				ssc_data_ptr = ssch_data_subframe0_buffer;
+			}
+			else if(slot_idx == 10)
+			{
+				ssc_data_ptr = ssch_data_subframe5_buffer;
+			}
+
+			/***********************PBCH处理函数************************/
+			BS_DSP0_Core0_PBCH(precoding_pbch_data_buffer);
+			/**********************************************************/
+			//2015.3.9修改
+            #ifdef VERSION_719
+			vxx_mac_para.pdcch_num =dl_pdcch_num; //vxx_user_num;//
+			vxx_mac_para.phich_num =dl_phich_num;
+            #else
+			vxx_mac_para.pdcch_num =vxx_user_num; //vxx_user_num;//
+			vxx_mac_para.phich_num =vxx_user_num;//vxx_user_num;//
+            #endif
+			for(user_index = 0;user_index < vxx_mac_para.pdcch_num;user_index++)
+			{
+				vxx_mac_para.pdcch_para[user_index] = vxx_config_para_init[user_index].pdcch_para[0];
+			}
+
+			for(user_index = 0;user_index <vxx_mac_para.phich_num;user_index++)
+			{
+				vxx_mac_para.phich_para[user_index] = vxx_config_para_init[user_index].phich_para;
+			}
+
+			/************************************PCFICH********************************************/
+			BS_DSP0_Core0_PCFICH(slot_idx,precoding_pcfich_data_buffer);
+			/************************************PHICH********************************************/
+			BS_DSP0_Core0_PHICH(slot_idx,precoding_phich_data_buffer);
+			/************************************PDCCH******************************************/
+			BS_DSP0_Core0_PDCCH();
+			/************************************PDSCH*********************************************/
+			memset(&vxx_output_data,0,NUM_ANTENNA_PORT_2 * 4 * 2 * N_SYM_PER_SLOT * N_DL_RB * N_SC_PER_RB);
+
+			for(user_index = 0;user_index < vxx_user_num;user_index++)
+			{
+				for(i = 0;i < NUM_ANTENNA_PORT_2;i++)
+				{
+					precoding_data_buffer[i] = vxx_precoding_data[i];
+				}
+
+				BS_DSP0_Core0_PDSCH(user_index,precoding_data_buffer);
+
+				rsgen_output_buffer[0] = rsgen_output[slot_idx][0];
+				rsgen_output_buffer[1] = rsgen_output[slot_idx][1];
+				rsgen_output_buffer[2] = rsgen_output[slot_idx][2];
+				rsgen_output_buffer[3] = rsgen_output[slot_idx + 1][0];
+				rsgen_output_buffer[4] = rsgen_output[slot_idx + 1][1];
+				rsgen_output_buffer[5] = rsgen_output[slot_idx + 1][2];
+
+
+				prbmapping(
+							   slot_idx,/*一个无线帧中的时隙索引，输入为偶数0,2,4~18*/
+							   &vxx_user_para[user_index],
+							   &vxx_cell_para,
+							   rsgen_output_buffer,/*3symbol*220char,存储的是实虚部共同索引*/
+							   precoding_data_buffer,/*SCH_data_buffer[ant_port][调制后的所有符号]*/
+							   output_data,/*一个子帧output_data[ant_port][14*100*12]*/
+							   precoding_pbch_data_buffer,
+							   psch_data_ptr,
+							   ssc_data_ptr,
+							   total_symbol,
+							   user_index
+							 );
+		   }
+		   /***********************************************************************************/
+
+		   /**************IFFT处理**************************************************************/
+		   used_len = 0;
+		   BS_DSP0_Core0_OFDM(total_symbol,fftc_output_data_address);
+		   /*************IFFT处理结束************************************************************/
+		   /*if(slot_idx == 0)
+		   {
+			   timer_flag = 1;
+			   CACHE_wbL2((void *)&timer_flag,sizeof( timer_flag),CACHE_WAIT);
+		   }*/
+
+#if 1   //15.12.15
+		   CACHE_invL2((void *)&process_flag[16*slot_idx], sizeof(process_flag[16*slot_idx]), CACHE_WAIT);
+		   process_flag[16*slot_idx] = process_flag[16*slot_idx]+1;
+		   CACHE_wbL2((void *)&process_flag[16*slot_idx],sizeof(process_flag[16*slot_idx]),CACHE_WAIT);
+#endif
+#ifndef VERSION_719//15.12.15
+		   if(slot_idx==18)
+		   {
+			  // while(1);
+			   process_cycle[10] = TSC_delay_cycle(process_start);//10(8)个子帧处理时间
+
+			   if(process_cycle[10]<12000000)
+			   {
+				   CycleDelay(12000000-process_cycle[10]-200);//200是测试时间结果
+			   }
+
+		   }
+		  // process_cycle[iii]=TSC_delay_cycle(process_start);
+		  // iii++;
+
+
+		  slot_idx = (slot_idx+2)%20;
+		  subframeN = slot_idx/2;
+#endif
+		   process_num1++;
+		  /* if(process_num1==8)
+			   while(1);*/
+
+
+        	}
+
+      }
+
+
+   else if(1==glbCoreId)
+   {
+       Device_Interrupt_init();
+	   SrioDevice_init ();
+       int slot=0,symbol_seq=0,port=0,send_len=-1;//表示正在发送的子帧序号
+
+       MACtoDSPflag=(ENB_DL_DEVICE_ID*)mactophyflag;
+#if 0
+       while(MACtoDSPflag->NewFlag!=1)
+       {
+           CACHE_invL2((void*)MACtoDSPflag, sizeof(MACtoDSPflag), CACHE_WAIT);
+       }
+
+       if(MACtoDSPflag->NewFlag==1)
+       {
+    	   printf("core1 is OK\n");/* 更新设备ID号 */
+       }
+#endif
+       while(1)
+       {
+
+           if(g_ucDoorbellIntrFlag == 1)
+      	   {
+        	   /************************清零***************************/
+        	   CACHE_invL2(total_output_data[dbinfo][0],sizeof(int),CACHE_WAIT);
+			   if(total_output_data[dbinfo][0][0]!=0)
+			       trans_num++;
+
+               timecount[0][datasend%100] = TSCL - nowtime ;
+               nowtime = TSCL;
+               /**************************向719发送中断*******************************/
+ //hnx 关掉
+#if 0
+               counter=(counter+1)%(1000*200 );
+               if(counter==0)//子帧号为0，向719发送200ms定时以及报错信息
+               {
+                   phyto719[0]=dbinfo;
+               	   phyto719[1]=fast_error_flag;
+               	   phyto719[2]=slow_error_flag;
+               	   phyto719[3]=0;
+               	   CACHE_wbL2((void *)phyto719,sizeof(phyto719),CACHE_WAIT);
+               	   LTE_Test(slot,1,1);//每隔10ms，需要修改transParameter[1]向719返回信息，
+               	   get_flag();
+               }
+#endif
+               get_flag();
+               //port0
+      		   transParameter[0].remote_addrL=DST_ADDR1;
+      		   transParameter[0].local_addr = (Uint32)total_output_data[slot>>1]+dbinfo*SRIO_DATA_BUFFER_SIZE*2;
+      		   LTE_Test(0,0,0);
+               //port1
+      		   transParameter[0].remote_addrL=DST_ADDR2;
+      		   transParameter[0].local_addr = (Uint32)total_output_data[slot>>1]+dbinfo*SRIO_DATA_BUFFER_SIZE*2+SRIO_DATA_BUFFER_SIZE;
+      		   LTE_Test(0,0,0);
+
+
+      		   //			/*clear doorbell flag*/
+   			   g_ucDoorbellIntrFlag=0;
+
+			   CACHE_invL2((void *)&process_flag[16*slot], sizeof(process_flag[16*slot]), CACHE_WAIT);
+			   if(process_flag[32*dbinfo] > 1)
+				   fast_error_flag++;
+			   else if(process_flag[32*dbinfo] < 1)
+				   slow_error_flag++;
+
+			   process_num2++;
+			   CACHE_wbL2((void *)&process_num2,sizeof(process_num2),CACHE_WAIT);
+
+      		   if(datasend == 0)
+      		       firstframe = dbinfo;
+      		   if(datasend == 1)
+      		       a = dbinfo;
+      		   if(datasend == 2)
+      		       b = dbinfo;
+      		   if(datasend == 3)
+      		       c = dbinfo;
+      		   if(datasend == 4)
+      		       d = dbinfo;
+      		   datasend++;
+      		   /***************************对当前buffer清零***************************/
+			   process_flag[32*dbinfo] = 0;//发送后置0
+			   CACHE_wbL2((void *)&process_flag[32*dbinfo],sizeof(process_flag[32*dbinfo]),CACHE_WAIT);
+
+			  /* memset(total_output_data[dbinfo][0],0,30720*4);
+			   memset(total_output_data[dbinfo][1],0,30720*4);
+			   CACHE_wbL2(total_output_data[dbinfo][0],sizeof(total_output_data[dbinfo][0]),CACHE_WAIT);
+			   CACHE_wbL2(total_output_data[dbinfo][1],sizeof(total_output_data[dbinfo][1]),CACHE_WAIT);
+              */
+
+      		}
+      	 }
+
+
+
+
+
+
+
+
+
+
+
+#if 0       //15.12.15
+       MACtoDSPflag=(ENB_DL_DEVICE_ID*)mactophyflag;
+       while(MACtoDSPflag->NewFlag!=1)
+       {
+           CACHE_invL2((void*)MACtoDSPflag, sizeof(MACtoDSPflag), CACHE_WAIT);
+       }
+
+       if(MACtoDSPflag->NewFlag==1)
+       {
+    	   /* 更新设备ID号 */
+       }
+#endif
+#if 0
+
+	   /*2015.5.25定时器初始化*/
+	   Timer_init();
+
+	   while(timer_flag== 0)
+	   {
+	       CACHE_invL2((void *)&timer_flag, sizeof(timer_flag), CACHE_WAIT);
+	   }
+
+	    Timer_start();
+
+		while(1)
+		{
+		    if(interrupt_flag == 1)
+			{
+			    interrupt_flag = 0;
+				count_num=(count_num+1)%140;
+				//counter++;
+				counter=(counter+1)%(14000*200 );
+
+
+			    if((count_num>=24&&count_num<=41)||(count_num>=94&&count_num<=111))//特殊子帧及上行子帧
+				{
+					//特殊子帧非下行部分及上行部分，不做处理
+				}
+				else
+				{
+					  //判定当前需要发送的时隙和符号序号
+				    slot = ((count_num/14)*2)%20;
+					symbol_seq = count_num%14;
+
+#if 0
+					if(counter==0)//子帧号为0，向719发送10ms定时以及报错信息
+			        {
+					    phyto719[0]=slot;
+					    phyto719[1]=fast_error_flag;
+					    phyto719[2]=slow_error_flag;
+					    phyto719[3]=0;
+					    CACHE_wbL2((void *)phyto719,sizeof(phyto719),CACHE_WAIT);
+					    LTE_Test(slot,1,1);//每隔10ms，需要修改transParameter[1]向719返回信息，
+					    get_flag();
+				    }
+#endif
+				    //while(1);
+
+					  /*进行SRIO的发送*/
+					if(symbol_seq==0)
+					{
+					    CACHE_invL2((void *)&process_flag[16*slot], sizeof(process_flag[16*slot]), CACHE_WAIT);
+						if(process_flag[16*slot] > 1)
+						    fast_error_flag++;
+						else if(process_flag[16*slot] < 1)
+							slow_error_flag++;
+
+						process_num2++;
+						CACHE_wbL2((void *)&process_num2,sizeof(process_num2),CACHE_WAIT);
+
+						transParameter[0].local_addr = (Uint32)total_output_data[slot>>1];//源地址初始化为保存数据
+						transParameter[0].byte_count = (2048+160)*4;
+						send_len++;
+
+						process_flag[16*slot] = 0;//发送后置0
+						CACHE_wbL2((void *)&process_flag[16*slot],sizeof(process_flag[16*slot]),CACHE_WAIT);
+					 }
+
+					 if(send_len%BUF_LEN==0&&symbol_seq==0)
+					 {
+						 transParameter[0].remote_addrL =  0x89ac4800;//每发送BUF_LEN个子帧,接收端从头开始读取数据进行处理(FIFO)
+					 }
+
+					 port=0;
+					 LTE_Test(slot,port,0);
+					 cfg_change(symbol_seq,port,slot);
+
+					 port=1;
+					 LTE_Test(slot,port,0);
+					 cfg_change(symbol_seq,port,slot);
+					// if(counter==69)
+					//	 while(1);
+
+				  }
+			  }
+		  }
+
+
+#endif
+     }
+
+}
+

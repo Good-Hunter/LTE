@@ -1,0 +1,4 @@
+BSL_C667X_INSTALL_DIR=C:\ca_amc_bsl\snapshot_dsp_c667x
+PDK_C6678_INSTALL_DIR=C:\ti\pdk_C6678_1_1_2_6
+PDK_C6670_INSTALL_DIR=C:\ti\pdk_C6670_1_1_2_6
+CGT_INSTALL_DIR=C:\ti\C6000 Code Generation Tools 7.4.0
