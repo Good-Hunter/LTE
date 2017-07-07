@@ -1,0 +1,605 @@
+/* =============================================================================
+ * Copyright (c) CommAgility Limited 2008-2011
+ *
+ * Use of this software is controlled by the terms and conditions found in the
+ * license agreement under which this software has been supplied
+ *
+ * CommAgility Limited,                		    email:   support@commagility.com  
+ * Charnwood Building, Holywell Park,     		    web:     www.commagility.com
+ * Ashby Road, Loughborough,           		    general: +44 (0) 1509 228866
+ * LEICESTERSHIRE, LE11 3AQ, UK.
+ * =============================================================================
+ */
+/** 
+ * @file   emac_driver.c
+ * @brief  IP Stack EMA driver source file.
+ * @path
+ * @author Piyush Prince
+ * 
+ */
+/* =============================================================================
+ * History:
+ * --------	
+ * Version 0.3.0
+ *   Revision: 0.1.0 [Id:PP] [Date: 21/02/2011] Initial Release
+ *   Initial revision
+ *   Revision: 0.3.0 [Id:PP] [Date: 18/04/2013] Updated example
+ *   Updated example to support Jumbo packets and added ping responder
+ *   Revision: 0.3.1 [Id:PP] [Date: 14/11/2013] Incorrect SIZE_HOST_DESC
+ *   Updated SIZE_HOST_DESC back to 64
+ *   Also updated TX and RX API to match with latest LWIP fragmentation fix
+ * =============================================================================
+ */
+/* Include Files:
+ */
+#include <Emac_config.h>
+#include <stdio.h>
+#include <ti\csl\csl_pscAux.h>
+#include <dsp\netcp\BSLC667X_netcp.h>
+#include <string.h>
+/* External definiton for g_BoardInfo */
+extern BSLC667X_BoardInfo_s  g_BoardInfo;
+
+/***** Application Defines *****/
+#define SIZE_HOST_DESC			64
+#define TOTAL_DESC				200
+#define	TX_HOST_DESC			TOTAL_DESC/2
+#define	RX_HOST_DESC			TOTAL_DESC/2
+
+
+#define	TX_BUFF_SIZE			(10000) // Range 64 - 9212B only.
+#define RX_BUFF_SIZE			(10000)
+
+#pragma DATA_SECTION (hostDesc, "hostDesc_in_DDR3");
+#pragma DATA_ALIGN (hostDesc, 16)
+Uint8   hostDesc[SIZE_HOST_DESC * TOTAL_DESC];
+
+#pragma DATA_SECTION (TxBuff, "TxBuff_in_DDR3");
+#pragma DATA_ALIGN(TxBuff, 16)
+Uint8 TxBuff[TX_BUFF_SIZE*TX_HOST_DESC];
+
+#pragma DATA_SECTION (RxBuff, "RxBuff_in_DDR3");
+#pragma DATA_ALIGN(RxBuff, 16)
+Uint8 RxBuff[RX_BUFF_SIZE*RX_HOST_DESC];
+
+#pragma DATA_SECTION (g_RxDataBuff, "g_RxDataBuff_in_DDR3");
+#pragma DATA_ALIGN(g_RxDataBuff, 16)
+Uint8 g_RxDataBuff[RX_BUFF_SIZE];
+
+#pragma DATA_SECTION (g_RxDataBuff, "g_RxDataBuff_in_DDR3");
+#pragma DATA_ALIGN(g_RxDataBuff, 16)
+Uint8 g_TxDataBuff[1518];
+
+#define	PUSH_QUEUE(q, desc)	*((volatile Uint32 *)(QM_MGMT_REG + REG_D + (q * 16))) = (desc | ((SIZE_HOST_DESC >> 4) - 1));
+#define	POP_QUEUE(q)		*((volatile Uint32 *)(QM_MGMT_REG + REG_D + (q * 16)))
+#define GET_Q_ENTRY_COUNT(q)	*((volatile Uint32 *)(QM_STAT_CONF_REG + REG_A + (q * 16))) & 0x0007FFFF
+
+
+typedef struct{
+	Uint8 MacDst[6];
+	Uint8 MacSrc[6];
+	Uint16 type;
+}MACHDR;
+
+typedef struct {
+	Uint8    VerLen;
+	Uint8    Tos;
+	Uint16   TotalLen;
+	Uint16   Id;
+	Uint16   FlagOff;
+	Uint8    Ttl;
+	Uint8    Protocol;
+	Uint16   Checksum;
+	Uint32   IPSrc;
+	Uint32   IPDst;
+               } IPHDR;
+
+
+// Pseudo Header for Checksum 用于校验和的伪首部
+typedef struct {
+				Uint32  IPSrc;
+                Uint32  IPDst;
+                Uint8   Null;
+                Uint8   Protocol;
+                Uint16   Length;
+
+                } PSEUDO;
+PSEUDO upseudo;
+typedef struct {
+	Uint16   SrcPort;
+	Uint16   DstPort;
+	Uint16   Length;
+	Uint16   UDPChecksum;
+               } UDPHDR;
+
+typedef struct{
+    MACHDR  MacHdr;
+    IPHDR 	IpHdr;
+    UDPHDR  UdpHdr;
+
+               }HDR;
+     HDR hdr;
+Uint8 buf[10000]={0};
+Uint32 uiPktRcvd=1;
+Uint32 uiPktsend=1;
+//hdr.buf[0]=0x5445;
+//hdr.buf[1]=0x5354;
+//hdr.buf[2]=0x494E;
+//hdr.buf[3]=0x4700;
+void UdpChecksum( Uint8 *pUdpHdr,PSEUDO *pupseudo);
+void IPChecksum( IPHDR *pIpHdr );
+
+/*  Initialise on-board ethernet interfaces
+ */
+Uint32 network_device_init()
+{
+	volatile Uint32 loopCount;
+
+    Uint8 ucCoreId = (Uint8)BSLC667X_GetDspCoreId();
+
+    volatile Uint32 i = 0;
+
+
+    /***** Program the QM Link RAM Registers *****/
+    /***** Programming Region 0 is optional *****/
+	set_link_ram(0, QM_LRAM_REGION, QM_LRAM_SIZE);
+	//set_link_ram(0, 0x90000000, QM_LRAM_SIZE);
+
+	/***** Program Descriptor Memory Setup *****/
+    /***** Only Region 0 is required to program *****/
+	set_memory_region(0, (Uint32) (Uint32)BSLC667X_C64X_GLOBAL_ADDR(CSL_chipReadReg(CSL_CHIP_DNUM),(Uint32 )hostDesc), 0, 0x30006); //Max number of descriptors in region#0 and 64B of each descriptor size
+
+	/*Setup the Rx & Tx queue*/
+	{
+		Uint16	idx = 0;
+		MNAV_HostPacketDescriptor *host_pkt;
+
+		/* Push 10 Host packets into Tx Completion Queue */
+		for (idx = 0; idx < TX_HOST_DESC; idx ++)
+		 {
+		   host_pkt = (MNAV_HostPacketDescriptor *)(hostDesc + (idx * SIZE_HOST_DESC));
+		   host_pkt->type_id = MNAV_DESC_TYPE_HOST;
+		   host_pkt->ps_reg_loc = 0;
+		   host_pkt->psv_word_count = 1;
+		   host_pkt->epib = 0;										   // Extended packet info present
+		   host_pkt->src_tag_hi = 0x01;
+		   host_pkt->src_tag_lo = 0x01;
+
+		   host_pkt->pkt_return_qmgr = 0; // Must be set to zero as only one q manager is supported
+		   host_pkt->pkt_return_qnum = HOST_PA_TX_RETURN_Q;
+
+		   host_pkt->orig_buff0_len = TX_BUFF_SIZE;
+		   host_pkt->orig_buff0_ptr = (Uint32)(TxBuff + (idx * TX_BUFF_SIZE));
+		   host_pkt->next_desc_ptr = 0;
+		   host_pkt->buffer_ptr = host_pkt->orig_buff0_ptr;
+           printf("%d\n",(Uint32)BSLC667X_C64X_GLOBAL_ADDR(CSL_chipReadReg(CSL_CHIP_DNUM),(Uint32 )host_pkt));
+		   PUSH_QUEUE(HOST_PA_TX_RETURN_Q, (Uint32)BSLC667X_C64X_GLOBAL_ADDR(CSL_chipReadReg(CSL_CHIP_DNUM),(Uint32 )host_pkt));
+		 }
+
+		/* Push 10 Host packets into Rx FDQ */
+		for (idx = TX_HOST_DESC; idx < TOTAL_DESC; idx ++)
+		{
+		   host_pkt = (MNAV_HostPacketDescriptor *)(hostDesc + (idx * SIZE_HOST_DESC));
+
+		   /* Set non-Rx overwrite fields */
+		   host_pkt->type_id = MNAV_DESC_TYPE_HOST;
+		   host_pkt->orig_buff0_len = RX_BUFF_SIZE;
+		   host_pkt->orig_buff0_ptr = (Uint32)(RxBuff + ((idx - TX_HOST_DESC) * RX_BUFF_SIZE));
+		   host_pkt->next_desc_ptr = 0;
+		   host_pkt->psv_word_count = 1;
+		   host_pkt->epib = 1;
+		   host_pkt->buffer_len = RX_BUFF_SIZE;
+		   host_pkt->buffer_ptr = host_pkt->orig_buff0_ptr;
+		   host_pkt->next_desc_ptr = 0; //don't link Host buffers in Rx FDQ
+		   host_pkt->src_tag_hi = 1;
+		   host_pkt->src_tag_lo = 1;
+
+		   PUSH_QUEUE(HOST_PA_RX_FDQ, (Uint32)BSLC667X_C64X_GLOBAL_ADDR(CSL_chipReadReg(CSL_CHIP_DNUM),(Uint32 )host_pkt));
+		}
+	}
+
+    /***** Rx Flow configuration *****/
+	/***** Rx Flow # 22 *****/
+	for(i=0;i<32;i++)
+	{
+	    PA_RX_FLOW_REG_A(i) = 0x00000000 + HOST_PA_RX_Q;	//Host Descriptors with no SOP offset
+	    PA_RX_FLOW_REG_B(i) = 0;
+	    PA_RX_FLOW_REG_C(i) = 0;	//0x24000000; // RX_SRC_TAG_HI_SEL = 2 = overwrite with flow_id[7-0] from back end application
+	    										  // RX_SRC_TAG_LO_SEL = 4 = overwrite with dest_tag[7-0] from back end application
+	    PA_RX_FLOW_REG_D(i) = (HOST_PA_RX_FDQ << 16);
+	    PA_RX_FLOW_REG_E(i) = 0;
+	    PA_RX_FLOW_REG_F(i) = 0;
+	    PA_RX_FLOW_REG_G(i) = 0;		//Optional fields 0x80
+	    PA_RX_FLOW_REG_H(i) = 0;
+	}
+
+    /***** TX Channel Configuration *****/
+    /***** Enable all 10 Tx channels *****/
+    for(i=0;i<10;i++)
+    {
+		PA_TX_CHA_REG_A(i) = 0x80000000;		// Enable the Tx Channel
+    }
+
+    /***** Enabled PA Rx Channel 22 *****/
+	for(i=0;i<24;i++)
+   		PA_RX_CHA_REG_A(i) = 0x80000000;		// Enable the Rx Channel
+	
+    /***** Program the PA CDMA Loopback Disable *****/
+    PA_CDMA_EMU_CNTL = 0x00000000;	// Program for Disable Loopback operation
+
+    return 0;
+}
+
+
+/* Copy Rx IP packet into uIP buffer if any */
+Uint32 network_device_read(void* pPayloadData, Uint16* pPayloadLen)
+{
+	Uint32 poped_desc;
+	Uint32 count = 0;
+
+	MNAV_HostPacketDescriptor *pPkt;
+
+	/***** Received Packets *****/
+	count = GET_Q_ENTRY_COUNT(HOST_PA_RX_Q);
+	if(count)
+	{
+		poped_desc = POP_QUEUE(HOST_PA_RX_Q);
+		pPkt = (MNAV_HostPacketDescriptor *)(poped_desc & (Uint32)0xFFFFFFF0);
+		memcpy((void*)pPayloadData,(void*)pPkt->buffer_ptr,pPkt->buffer_len);
+
+		/* Remove 4 bytes of padding from DSP MNAV */
+		*pPayloadLen = pPkt->buffer_len-4;
+
+		PUSH_QUEUE(HOST_PA_RX_FDQ, (Uint32)BSLC667X_C64X_GLOBAL_ADDR(CSL_chipReadReg(CSL_CHIP_DNUM),(Uint32 )pPkt));
+
+		return 0;
+	}
+
+	return 1;
+}
+
+/* Send IP packet */
+Uint32 network_device_send(Int32 TXEmac, void* payloadData, Uint16 payloadLen )
+{
+	Uint32 count = 0, i = 0;
+	Uint32 pop_q;
+
+	MNAV_HostPacketDescriptor *host_pkt;
+
+	/* Ensure packet size is 60 or more */
+	if(payloadLen < 60)
+		payloadLen += (60-payloadLen);
+
+	/*get free queue*/
+	count = GET_Q_ENTRY_COUNT(HOST_PA_TX_RETURN_Q);
+	if(count) {
+		pop_q = POP_QUEUE(HOST_PA_TX_RETURN_Q);
+		pop_q &= 0xFFFFFFF0;
+
+		host_pkt = (MNAV_HostPacketDescriptor *)pop_q;
+
+		/***** Prepare Descriptors for Tx Free Descriptor Queue *****/
+		memcpy((void *)host_pkt->orig_buff0_ptr, (void *)payloadData, payloadLen);
+		//host_pkt->buffer_ptr = (Uint32)payloadData;
+		host_pkt->buffer_len = payloadLen;
+		host_pkt->packet_length = payloadLen;
+
+			PUSH_QUEUE(HOST_PA_TX_CH8_QUEUE, (Uint32)BSLC667X_C64X_GLOBAL_ADDR(CSL_chipReadReg(CSL_CHIP_DNUM),(Uint32 )host_pkt));
+
+		for (i=0; i<1000; i++)
+			asm(" NOP 5");
+
+		return 0;
+	}
+
+	return 1;
+}
+
+void main()
+{
+   	BSLC667X_ErrorCode Err;
+    Int8 i,ij=0;
+    Int8 cRxPtr=0;
+
+    Uint8 ucMacAddr[6];
+    Uint16 PktSize, checksum;
+    Uint8 temp;
+    Uint16 len=1000;
+    unsigned int type1[5]={0x81480000,0x81480fa0,0x81481f40,0x81482ee0,0x81483e80};
+    if ((BSLC667X_DspCoreId_e)BSLC667X_GetDspCoreId() == BSLC667X_DSP_CORE_ID_0)
+    {
+    /* Default configuration will only be used if FRU read fails from DSP */
+	BSLC667X_Libconfig_s LibConfig = {BSLC667X_CPU_CLK_FREQ_AUTO,BSLC667X_BOARD_CFG_DEFAULT_AMC2C6670,TRUE,TRUE,TRUE};
+
+    /* Initialise PLLC, DDR3 and BSLC667X Library */
+	Err = BSLC667X_Initialise(&LibConfig);
+	if (Err)
+	{
+		printf("BSLC667X_Initialise() failed!!, ErrorCode = 0x%x\n",Err);
+		return;
+	}
+
+
+    }
+	/* Initialise SGMII interface */
+	Err = BSLC667X_NetcpInitialise(NULL);
+	if (Err)
+		{
+			printf("BSLC667X_NetcpInitialise() failed!!, ErrorCode = 0x%x\n",Err);
+		}
+//if ((BSLC667X_DspCoreId_e)BSLC667X_GetDspCoreId() == BSLC667X_DSP_CORE_ID_1)
+
+
+
+	if(1)
+	{
+	network_device_init();
+
+	/* Store TI-e-fuse MAC address */
+	ucMacAddr[0] = ((hBootCfg->EMAC_ID2) >>  8) & 0xFF;
+	ucMacAddr[1] = ((hBootCfg->EMAC_ID2) >>  0) & 0xFF;
+	ucMacAddr[2] = ((hBootCfg->EMAC_ID1) >> 24) & 0xFF;
+	ucMacAddr[3] = ((hBootCfg->EMAC_ID1) >> 16) & 0xFF;
+	ucMacAddr[4] = ((hBootCfg->EMAC_ID1) >>  8) & 0xFF;
+	ucMacAddr[5] = ((hBootCfg->EMAC_ID1) >>  0) & 0xFF;
+
+	printf("Execute \"arp -s 192.168.1.%d %02x-%02x-%02x-%02x-%02x-%02x\" on command prompt\n", (g_BoardInfo.DspId+1), ucMacAddr[0], ucMacAddr[1], ucMacAddr[2], ucMacAddr[3], ucMacAddr[4], ucMacAddr[5]);
+	printf("try ping to above IP address\n");
+
+#if 0
+	//写入固定参数 验证 校验和函数编写正确
+	//MAC帧
+		/* PC的MAC地址作为目的地址 */
+
+		hdr.MacHdr.MacSrc[0]=0x04;
+		hdr.MacHdr.MacSrc[1]=0xE4;
+		hdr.MacHdr.MacSrc[2]=0x51;
+		hdr.MacHdr.MacSrc[3]=0x7F;
+		hdr.MacHdr.MacSrc[4]=0xBE;
+		hdr.MacHdr.MacSrc[5]=0xF8;
+
+		hdr.MacHdr.MacDst[0]=0x00;
+		hdr.MacHdr.MacDst[1]=0x07;
+		hdr.MacHdr.MacDst[2]=0xE9;
+		hdr.MacHdr.MacDst[3]=0x60;
+		hdr.MacHdr.MacDst[4]=0x14;
+		hdr.MacHdr.MacDst[5]=0x09;
+
+
+		hdr.MacHdr.type=0x0800;
+
+
+   //IP数据报
+		hdr.IpHdr.VerLen=0x45;   //版本和首部长度
+		hdr.IpHdr.Tos=0;      //区分服务 不使用
+		hdr.IpHdr.TotalLen=0x05DC;    //总长度 IP 首部+数据
+		hdr.IpHdr.Id=0x109E;  //标识 每发送一次 就加1 在发送量大于1500字节 时  这个字段很有用
+		hdr.IpHdr.FlagOff=0x2000;
+		hdr.IpHdr.Ttl=0x80;
+		hdr.IpHdr.Protocol=0x11;
+		hdr.IpHdr.Checksum=0;
+		hdr.IpHdr.IPSrc=0xC0A80164;
+		hdr.IpHdr.IPDst=0xC0A80102;
+		IPChecksum(&hdr.IpHdr);
+		//memcpy(((Uint8 *)g_TxDataBuff), &hdr, 42 );
+		//memcpy(((Uint8 *)g_TxDataBuff)+42, buf, 7);
+		//UDP数据报
+		hdr.UdpHdr.SrcPort=0x43F;
+		hdr.UdpHdr.DstPort=0xD;
+		hdr.UdpHdr.Length=15;
+		hdr.UdpHdr.UDPChecksum=0;
+
+		upseudo.IPSrc    = 0x99130868;
+		upseudo.IPDst    = 0xAB030E0B;
+		upseudo.Null     = 0;
+		upseudo.Protocol = 17;
+		upseudo.Length   = 15;
+
+		//把想要发送的数据拷贝至buf数组
+		hdr.buf[0]=0x5445;
+		hdr.buf[1]=0x5354;
+		hdr.buf[2]=0x494E;
+		hdr.buf[3]=0x4700;
+		UdpChecksum(&hdr.UdpHdr,&upseudo);
+
+
+		if(network_device_send(0,&hdr,PktSize))
+			//printf("Failed to send packet\n");
+			uiPktsend++;
+		else
+			//printf("Pkt Sent of size %d\n",PktSize);
+			uiPktsend++;
+
+#endif
+
+#if 1
+	while(1)
+	{
+		if( network_device_read(g_RxDataBuff, &PktSize) == 0 )
+		{
+			/* Manually filter MAC address for now */
+			if( (g_RxDataBuff[0] == ucMacAddr[0]) &&
+					(g_RxDataBuff[1] == ucMacAddr[1]) &&
+					(g_RxDataBuff[2] == ucMacAddr[2]) &&
+					(g_RxDataBuff[3] == ucMacAddr[3]) &&
+					(g_RxDataBuff[4] == ucMacAddr[4]) &&
+					(g_RxDataBuff[5] == ucMacAddr[5]))
+			{
+				uiPktRcvd++;
+
+				memcpy((void *)type1[ij],g_RxDataBuff+42,PktSize-42);
+				ij++;
+				if(ij==5)
+					ij=0;
+				/* Process the packet */
+				//printf("Pkt Received of size %d - %d\n", PktSize, uiPktRcvd++);
+#if 1
+			//MAC帧
+				/* PC的MAC地址作为目的地址 */
+				for (i=0;i<6;i++)
+				{
+					hdr.MacHdr.MacDst[i]=  g_RxDataBuff[i+6];
+					hdr.MacHdr.MacSrc[i] = g_RxDataBuff[i];
+
+					printf("%x %x\n",g_RxDataBuff[i],g_RxDataBuff[i+6]);
+				}
+				hdr.MacHdr.type=0x0800;
+
+
+		   //IP数据报r
+				hdr.IpHdr.VerLen=0x45;   //版本和首部长度
+				hdr.IpHdr.Tos=0;      //区分服务 不使用
+				hdr.IpHdr.TotalLen=PktSize-14;    //总长度 IP 首部+数据
+				hdr.IpHdr.Id=uiPktRcvd;  //标识 每发送一次 就加1 在发送量大于1500字节 时  这个字段很有用
+				hdr.IpHdr.FlagOff=0;
+				hdr.IpHdr.Ttl=0x80;
+				hdr.IpHdr.Protocol=0x11;
+				hdr.IpHdr.Checksum=0;
+				hdr.IpHdr.IPSrc=(g_RxDataBuff[30]<<24)|(g_RxDataBuff[31]<<16)|(g_RxDataBuff[32]<<8)|(g_RxDataBuff[33]);
+				hdr.IpHdr.IPDst=(g_RxDataBuff[26]<<24)|(g_RxDataBuff[27]<<16)|(g_RxDataBuff[28]<<8)|(g_RxDataBuff[29]);
+				IPChecksum(&hdr.IpHdr);
+
+
+				//UDP数据报
+				hdr.UdpHdr.SrcPort=(g_RxDataBuff[36]<<8)|g_RxDataBuff[37];
+				hdr.UdpHdr.DstPort=(g_RxDataBuff[34]<<8)|g_RxDataBuff[35];
+				hdr.UdpHdr.Length=PktSize-34;
+				hdr.UdpHdr.UDPChecksum=0;
+
+				upseudo.IPSrc    = hdr.IpHdr.IPSrc;
+				upseudo.IPDst    = hdr.IpHdr.IPDst;
+				upseudo.Null     = 0;
+				upseudo.Protocol = 17;
+				upseudo.Length   = hdr.UdpHdr.Length;
+
+				memcpy(((Uint8 *)buf),&hdr.MacHdr, 14); //拷贝MAC帧头部
+				memcpy(((Uint8 *)buf+14),&hdr.IpHdr, 20); //拷贝IP数据报头部
+				memcpy(((Uint8 *)buf+34),&hdr.UdpHdr, 8); //拷贝UDP数据报头部
+				memcpy(((Uint8 *)buf+42),&g_RxDataBuff[42], PktSize-42);//拷贝数据
+
+				UdpChecksum(((Uint8 *)buf+34),&upseudo);
+
+				if(network_device_send(0,buf,PktSize))
+					//printf("Failed to send packet\n");
+					uiPktsend++;
+				else
+					//printf("Pkt Sent of size %d\n",PktSize);
+					uiPktsend++;
+				printf("Pkt Sent of size %d\n",PktSize);
+#endif
+#if 0
+				/* reverse src to dst mac addr */
+				for (i=0;i<6;i++)
+				{
+					temp = g_RxDataBuff[i];
+					g_RxDataBuff[i]=g_RxDataBuff[i+6];
+					g_RxDataBuff[i+6]=temp;
+				}
+				/* reverse src to dst ip addr */
+				for (i=0;i<4;i++)
+				{
+					temp = g_RxDataBuff[26+i];
+					g_RxDataBuff[26+i] = g_RxDataBuff[30+i];
+					g_RxDataBuff[30+i] = temp;
+				}
+
+#if 0
+				//this is ping response
+				g_RxDataBuff[34]=0x00;
+				//this is check sum
+				g_RxDataBuff[36]=0x00;
+				g_RxDataBuff[37]=0x00;
+				// generate new check sum
+				checksum = PingCheckSum(&(g_RxDataBuff[34]),PktSize-34);
+				//fill check sum
+				g_RxDataBuff[36]=checksum&0xFF;
+				g_RxDataBuff[37]=(checksum&0xFF00)>>8;
+#endif
+				if(network_device_send(0,g_RxDataBuff,PktSize))
+					//printf("Failed to send packet\n");
+					uiPktsend++;
+				else
+					//printf("Pkt Sent of size %d\n",PktSize);
+					uiPktsend++;
+#endif
+			}
+		}
+	}
+#endif
+	}
+
+}
+
+
+
+
+void IPChecksum( IPHDR *pIpHdr )
+{
+    int     tmp1;
+    Uint16  *pw;
+    Uint32  TSum = 0;
+
+    // Get header size in 4 byte chunks
+    tmp1 = pIpHdr->VerLen & 0xF;
+
+    // Checksum field is NULL in checksum calculations
+    pIpHdr->Checksum = 0;
+
+    // Checksum the header
+    pw = (Uint16 *)pIpHdr;
+    do {
+        TSum += (Uint32)*pw++;
+        TSum += (Uint32)*pw++;
+    } while( --tmp1 );
+    TSum = (TSum&0xFFFF) + (TSum>>16);
+    TSum = (TSum&0xFFFF) + (TSum>>16);
+    TSum = ~TSum;
+
+    // Note checksum is Net/Host byte order independent
+    pIpHdr->Checksum = (Uint16)TSum;
+}
+void UdpChecksum( Uint8 *pUdpHdr1,PSEUDO *pupseudo)
+{
+    int     tmp1;
+    Uint16  *pw;
+    Uint32  TSum;
+    UDPHDR *pUdpHdr= (UDPHDR *)pUdpHdr1;
+    // Get header size in bytes
+    tmp1 = upseudo.Length;
+
+    // Checksum field is NULL in checksum calculations
+    pUdpHdr->UDPChecksum = 0;
+
+    // Checksum the header
+    pw = (Uint16 *)pUdpHdr;
+    TSum = 0;
+    for( ; tmp1 > 1; tmp1 -= 2 )
+    {
+        TSum += (Uint32)*pw;
+        //printf("0x%x\n",(Uint32)*pw);
+        pw++;
+    }
+
+    if( tmp1 )
+        TSum += (Uint32)(*pw & 0xff00);
+
+    // Checksum the pseudo header
+    pw = (Uint16 *)&upseudo;
+    for( tmp1=0; tmp1 < 6; tmp1++ )
+    {
+        TSum += (Uint32)*pw;
+       // printf("0x%x\n",(Uint32)*pw);
+        pw++;
+    }
+
+    TSum = (TSum&0xFFFF) + (TSum>>16);
+    TSum = (TSum&0xFFFF) + (TSum>>16);
+
+    // Special case the 0xFFFF checksum - don't use a checksum
+    // value of 0x0000
+    if( TSum != 0xFFFF )
+        TSum = ~TSum;
+
+    // Note checksum is Net/Host byte order independent
+    pUdpHdr->UDPChecksum = (Uint16)TSum;
+}
